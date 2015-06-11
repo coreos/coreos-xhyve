@@ -1,0 +1,17 @@
+#!/bin/bash
+
+VMLINUZ=coreos_production_pxe.vmlinuz
+INITRD=coreos_production_pxe_image.cpio.gz
+CMDLINE="earlyprintk=serial console=ttyS0 acpi=off coreos.autologin"
+
+if [ $# -ne 1 ]; then
+	CMDLINE="${CMDLINE} cloud-config-url=https://raw.githubusercontent.com/coreos/coreos-xhyve/master/cloud-init/docker-only.txt"
+fi
+
+MEM="-m 1G"
+#SMP="-c 2"
+NET="-s 2:0,virtio-net"
+PCI_DEV="-s 0:0,hostbridge -s 31,lpc"
+LPC_DEV="-l com1,stdio"
+
+xhyve $MEM $SMP $PCI_DEV $LPC_DEV $NET $IMG_HDD -f kexec,imgs/$VMLINUZ,imgs/$INITRD,"$CMDLINE"
