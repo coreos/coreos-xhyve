@@ -44,12 +44,27 @@ core@localhost ~ $
 Now you can try to ssh in:
 
 ```
-ssh core@192.168.64.1
+$ ssh core@192.168.64.1
 ```
 
 Or try out docker:
 
 ```
-brew install docker
-docker -H 192.168.64.1
+$ brew install docker
+$ docker -H 192.168.64.1:2375
 ```
+
+Or try out rkt:
+
+```
+$ systemd-run rkt --insecure-skip-verify run coreos.com/etcd,version=v2.0.10 -- --listen-client-urls 'http://0.0.0.0:2379,http://0.0.0.0:4001'
+```
+
+And test from your laptop:
+
+```
+$ curl 192.168.64.1:2379/version
+etcd 2.0.10
+```
+
+
