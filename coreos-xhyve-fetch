@@ -3,8 +3,8 @@
 set -e -o pipefail
 
 # Ensure that required executables exist before proceeding
-which gpg >/dev/null || exit 1
-which curl >/dev/null || exit 1
+which gpg >/dev/null || (echo "GPG is required." && exit 1)
+which curl >/dev/null || (echo "CURL is required." && exit 1)
 
 # Everything we do should be user-access only!
 umask 077
