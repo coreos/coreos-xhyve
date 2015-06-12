@@ -1,7 +1,16 @@
 #!/bin/bash
 
-VMLINUZ=coreos_production_pxe.vmlinuz
-INITRD=coreos_production_pxe_image.cpio.gz
+getVersionID () {
+    declare channel="$1"
+    v_url="http://${channel}.release.core-os.net/amd64-usr/current/version.txt"
+    curl -Lsk "${v_url}" | grep COREOS_VERSION_ID= | sed -e 's,.*=,,'
+}
+
+CHANNEL=${CHANNEL:-alpha}
+VERSION=${VERSION:-$(getVersionID ${CHANNEL})}
+
+VMLINUZ=${CHANNEL}.${VERSION}.coreos_production_pxe.vmlinuz
+INITRD=${CHANNEL}.${VERSION}.coreos_production_pxe_image.cpio.gz
 CMDLINE="earlyprintk=serial console=ttyS0 acpi=off coreos.autologin"
 
 if [ $# -ne 1 ]; then
@@ -14,4 +23,4 @@ NET="-s 2:0,virtio-net"
 PCI_DEV="-s 0:0,hostbridge -s 31,lpc"
 LPC_DEV="-l com1,stdio"
 
-xhyve $MEM $SMP $PCI_DEV $LPC_DEV $NET $IMG_HDD -f kexec,imgs/$VMLINUZ,imgs/$INITRD,"$CMDLINE"
+sudo xhyve $MEM $SMP $PCI_DEV $LPC_DEV $NET $IMG_HDD -f kexec,imgs/$VMLINUZ,imgs/$INITRD,"$CMDLINE"

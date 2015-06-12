@@ -2,6 +2,14 @@
 
 set -e -o pipefail
 
+getVersionID () {
+    declare channel="$1"
+    v_url="http://${channel}.release.core-os.net/amd64-usr/current/version.txt"
+    curl -Lsk "${v_url}" | grep COREOS_VERSION_ID= | sed -e 's,.*=,,'
+}
+
+CHANNEL=${CHANNEL:-alpha}
+VERSION=${VERSION:-$(getVersionID ${CHANNEL})}
 # Ensure that required executables exist before proceeding
 which gpg >/dev/null || (echo "GPG is required." && exit 1)
 which curl >/dev/null || (echo "CURL is required." && exit 1)
@@ -135,8 +143,8 @@ gpg --batch --quiet --import <<<"$GPG_KEY"
 
 function get {
 	FILE=$1
-	if [ -f imgs/${FILE} ]; then
-		echo "found cached $FILE"
+	if [ -f imgs/${CHANNEL}.${VERSION}.${FILE} ]; then
+		echo "found cached $FILE (${CHANNEL}/${VERSION})"
 		return
 	fi
 
@@ -147,12 +155,12 @@ function get {
 
 	gpg --batch --trusted-key "${GPG_LONG_ID}" \
 		--verify "${WORKDIR}/${FILE}.sig" "${WORKDIR}/${FILE}"
-	mv ${WORKDIR}/${FILE} imgs/
-	mv ${WORKDIR}/${FILE}.sig imgs/
+	mv ${WORKDIR}/${FILE} imgs/${CHANNEL}.${VERSION}.${FILE}
+	mv ${WORKDIR}/${FILE}.sig imgs/${CHANNEL}.${VERSION}.${FILE}.sig
 }
 
 mkdir -p imgs
-ROOT=http://alpha.release.core-os.net/amd64-usr/current/
+ROOT=http://${CHANNEL}.release.core-os.net/amd64-usr/${VERSION}/
 VMLINUZ=coreos_production_pxe.vmlinuz
 INITRD=coreos_production_pxe_image.cpio.gz
 get $VMLINUZ
