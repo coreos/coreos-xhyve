@@ -8,6 +8,7 @@ getVersionID () {
 
 CHANNEL=${CHANNEL:-alpha}
 VERSION=${VERSION:-$(getVersionID ${CHANNEL})}
+MEMORY=${MEMORY:-1024}
 
 VMLINUZ=${CHANNEL}.${VERSION}.coreos_production_pxe.vmlinuz
 INITRD=${CHANNEL}.${VERSION}.coreos_production_pxe_image.cpio.gz
@@ -17,7 +18,7 @@ if [ $# -ne 1 ]; then
 	CMDLINE="${CMDLINE} cloud-config-url=https://raw.githubusercontent.com/coreos/coreos-xhyve/master/cloud-init/docker-only.txt"
 fi
 
-MEM="-m 1G"
+MEM="-m ${MEMORY}M"
 #SMP="-c 2"
 NET="-s 2:0,virtio-net"
 PCI_DEV="-s 0:0,hostbridge -s 31,lpc"
