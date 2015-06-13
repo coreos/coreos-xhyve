@@ -11,8 +11,9 @@ getVersionID () {
 CHANNEL=${CHANNEL:-alpha}
 VERSION=${VERSION:-$(getVersionID ${CHANNEL})}
 # Ensure that required executables exist before proceeding
-which gpg >/dev/null || (echo "GPG is required." && exit 1)
 which curl >/dev/null || (echo "CURL is required." && exit 1)
+
+type gpg 2>&1 > /dev/null || echo "GPG was not found. Downloaded images integrity won't be verified."
 
 # Everything we do should be user-access only!
 umask 077
@@ -139,7 +140,7 @@ Pg==
 export GNUPGHOME="${WORKDIR}/gnupg"
 mkdir "${GNUPGHOME}"
 
-gpg --batch --quiet --import <<<"$GPG_KEY"
+type gpg 2>&1 > /dev/null && gpg --batch --quiet --import <<<"$GPG_KEY"
 
 function get {
 	FILE=$1
@@ -153,7 +154,7 @@ function get {
 	curl "${ROOT}${FILE}.sig" > ${FILE}.sig
 	cd -
 
-	gpg --batch --trusted-key "${GPG_LONG_ID}" \
+	type gpg 2>&1 > /dev/null && gpg --batch --trusted-key "${GPG_LONG_ID}" \
 		--verify "${WORKDIR}/${FILE}.sig" "${WORKDIR}/${FILE}"
 	mv ${WORKDIR}/${FILE} imgs/${CHANNEL}.${VERSION}.${FILE}
 	mv ${WORKDIR}/${FILE}.sig imgs/${CHANNEL}.${VERSION}.${FILE}.sig
