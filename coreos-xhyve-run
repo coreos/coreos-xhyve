@@ -1,13 +1,15 @@
 #!/bin/bash
 
-getVersionID () {
-    declare channel="$1"
-    v_url="http://${channel}.release.core-os.net/amd64-usr/current/version.txt"
-    curl -Lsk "${v_url}" | grep COREOS_VERSION_ID= | sed -e 's,.*=,,'
-}
-
 CHANNEL=${CHANNEL:-alpha}
-VERSION=${VERSION:-$(getVersionID ${CHANNEL})}
+
+LATEST=$(ls -r imgs/${CHANNEL}.*.vmlinuz | head -n 1 | sed -e "s,.*${CHANNEL}.,," -e "s,.coreos_.*,,")
+if [[ -z ${LATEST} ]]; then
+    echo "Error: couldn't found anything to load (${CHANNEL} channel)."
+    echo "       please run 'coreos-xhyve-fetch' first."
+    exit 1
+fi
+
+VERSION=${VERSION:-${LATEST}}
 MEMORY=${MEMORY:-1024}
 
 VMLINUZ=${CHANNEL}.${VERSION}.coreos_production_pxe.vmlinuz
