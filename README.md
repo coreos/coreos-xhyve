@@ -21,7 +21,9 @@ Usage: xhyve [-behuwxACHPWY] [-c vcpus] [-g <gdb port>] [-l <lpc>]
 
 ### Download and run CoreOS
 
-These two commands will fetch a CoreOS Alpha image, verify it with the build public key, then run it under xhyve.
+By default, the following commands will fetch the latest CoreOS Alpha image
+available, verify it (if you have gpg installed in your system) with the build
+public key, and then run it under xhyve.
 
 ```
 coreos-xhyve-fetch
@@ -71,4 +73,29 @@ $ curl 192.168.64.1:2379/version
 etcd 2.0.10
 ```
 
+### Customize
+
+The `coreos-xhyve-fetch` and `coreos-xhyve-run` behavior can be customized
+through the following environment variables:
+- **CHANNEL**  
+  defaults to `alpha`.  
+  available alternatives are `stable` and `beta`
+- **VERSION**  
+  defaults to `latest`.
+- **MEMORY**  
+  defaults to `1024`.  
+  value is understood as being in MB.
+- **CLOUD_CONFIG**  
+  defaults to `https://raw.githubusercontent.com/coreos/coreos-xhyve/master/cloud-init/docker-only.txt`.  
+  has to be a valid, reachable, URL, pointing to a valid *cloud-config* file.
+
+  > **tip**:  
+  > see [here](https://discussions.apple.com/docs/DOC-3083) for how to
+  > host your custom *cloud-config* locally, so that you can run CoreOS locally
+  > without any online dependencies, then on
+  > `/etc/apache2/users/<YourUsername>.conf` replace `Allow from localhost` by
+  > `Allow from localhost, 192.168.0.0/255.255.0.0`.  
+  > usage would be something like...  
+  > `CLOUD_CONFIG=http://192.168.64.1/~am/coreos-xhyve/xhyve.cloud-init ./coreos-xhyve-run`
+  >
 
