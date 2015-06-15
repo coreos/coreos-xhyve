@@ -85,6 +85,9 @@ through the following environment variables:
 - **MEMORY**  
   defaults to `1024`.  
   value is understood as being in MB.
+- **UUID**
+  defaults to a random *uuid*.
+  set to a constant value in order to achieve the same IP address across VM reboots.
 - **CLOUD_CONFIG**  
   defaults to `https://raw.githubusercontent.com/coreos/coreos-xhyve/master/cloud-init/docker-only.txt`.  
   has to be a valid, reachable, URL, pointing to a valid *cloud-config* file.
