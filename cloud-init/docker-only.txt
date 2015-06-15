@@ -1,5 +1,10 @@
 #cloud-config
 
+write-files:
+  - path: /etc/conf.d/nfs
+    permissions: '0644'
+    content: |
+      OPTS_RPC_MOUNTD=""
 coreos:
   units:
     - name: docker-tcp.socket
@@ -16,4 +21,16 @@ coreos:
 
         [Install]
         WantedBy=sockets.target
+    - name: rpc-statd.service
+      command: start
+      enable: true
+    - name: Users.mount
+      command: start
+      content: |
+        [Mount]
+        What=192.168.64.1:/Users
+        Where=/Users
+        Options=rw,async,nolock,noatime,rsize=32768,wsize=32768
+        Type=nfs
+
 

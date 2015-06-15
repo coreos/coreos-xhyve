@@ -27,4 +27,15 @@ NET="-s 2:0,virtio-net"
 PCI_DEV="-s 0:0,hostbridge -s 31,lpc"
 LPC_DEV="-l com1,stdio"
 
-sudo xhyve $MEM $SMP $PCI_DEV $LPC_DEV $NET $IMG_HDD -f kexec,imgs/$VMLINUZ,imgs/$INITRD,"$CMDLINE"
+USERS="/Users -network 192.168.64.0 -mask 255.255.255.0 -alldirs -mapall=$(id -u):$(id -g)"
+sudo touch /etc/exports
+if ! grep -qs '^${USERS}$$' /etc/exports; then
+    echo "${USERS}" | sudo tee -a /etc/exports
+fi
+sudo nfsd restart
+
+sudo xhyve $MEM $SMP $PCI_DEV $LPC_DEV $NET $IMG_HDD -f kexec,imgs/$VMLINUZ,imgs/$INITRD,"$CMDLINE" || true
+
+sudo touch /etc/exports
+sudo sed -E -e  "s#^${USERS}\$##" -i.bak /etc/exports
+sudo nfsd restart

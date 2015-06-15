@@ -99,3 +99,5 @@ through the following environment variables:
   > `CLOUD_CONFIG=http://192.168.64.1/~am/coreos-xhyve/xhyve.cloud-init ./coreos-xhyve-run`
   >
 
+By default `/Users` is mounted inside your CoreOS VM, as `/Users`, so docker
+volumes will work as expected.
