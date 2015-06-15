@@ -9,13 +9,14 @@ if [[ -z ${LATEST} ]]; then
     exit 1
 fi
 
+localUser=$(id -nu)
 VERSION=${VERSION:-${LATEST}}
 MEMORY=${MEMORY:-1024}
 CLOUD_CONFIG=${CLOUD_CONFIG:-https://raw.githubusercontent.com/coreos/coreos-xhyve/master/cloud-init/docker-only.txt}
 UUID=${UUID:-$(uuidgen)}
 VMLINUZ=${CHANNEL}.${VERSION}.coreos_production_pxe.vmlinuz
 INITRD=${CHANNEL}.${VERSION}.coreos_production_pxe_image.cpio.gz
-CMDLINE="earlyprintk=serial console=ttyS0 acpi=off coreos.autologin"
+CMDLINE="earlyprintk=serial console=ttyS0 acpi=off localUser=${localUser} coreos.autologin"
 
 if [ $# -ne 1 ]; then
 	CMDLINE="${CMDLINE} cloud-config-url=${CLOUD_CONFIG}"

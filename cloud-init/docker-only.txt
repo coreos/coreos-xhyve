@@ -5,6 +5,19 @@ write-files:
     permissions: '0644'
     content: |
       OPTS_RPC_MOUNTD=""
+  - path: /opt/bin/ip2host
+    permissions: '0755'
+    content: |
+      #!/bin/bash
+      UUID=$(sudo cat /sys/devices/virtual/dmi/id/product_uuid)
+      USER=$(cat /proc/cmdline | sed -e 's,.*localUser=,,' -e 's, .*,,')
+      DATADIR=/Users/${USER}/.coreos-xhyve
+      [[ -d "${DATADIR}" ]] || mkdir -p "${DATADIR}"
+      [[ $# -eq 0 ]] && \
+        ip route get 8.8.8.8 | \
+          awk 'NR==1 {print $NF}' > "${DATADIR}/${UUID}" || \
+        rm -rf "${DATADIR}/${UUID}"
+
 coreos:
   units:
     - name: docker-tcp.socket
@@ -32,5 +45,16 @@ coreos:
         Where=/Users
         Options=rw,async,nolock,noatime,rsize=32768,wsize=32768
         Type=nfs
-
-
+    - name: ip2host.service
+      command: start
+      enable: true
+      content: |
+        [Unit]
+         Description=tell host VMs data
+         Requires=Users.mount
+         After=Users.mount
+        [Service]
+         Type=oneshot
+         ExecStart=/opt/bin/ip2host
+         ExecStop=/opt/bin/ip2host stop
+         RemainAfterExit=true
