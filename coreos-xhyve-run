@@ -14,12 +14,14 @@ VERSION=${VERSION:-${LATEST}}
 MEMORY=${MEMORY:-1024}
 CLOUD_CONFIG=${CLOUD_CONFIG:-https://raw.githubusercontent.com/coreos/coreos-xhyve/master/cloud-init/docker-only.txt}
 UUID=${UUID:-$(uuidgen)}
+SSHKEY=${SSHKEY}
+[[ -n "${SSHKEY}" ]] && SSHKEY="sshkey=\"${SSHKEY}\""
 VMLINUZ=${CHANNEL}.${VERSION}.coreos_production_pxe.vmlinuz
 INITRD=${CHANNEL}.${VERSION}.coreos_production_pxe_image.cpio.gz
-CMDLINE="earlyprintk=serial console=ttyS0 acpi=off localUser=${localUser} coreos.autologin"
+CMDLINE="earlyprintk=serial console=ttyS0 acpi=off localUser=${localUser} ${SSHKEY} coreos.autologin"
 
 if [ $# -ne 1 ]; then
-	CMDLINE="${CMDLINE} cloud-config-url=${CLOUD_CONFIG}"
+   CMDLINE="${CMDLINE} cloud-config-url=${CLOUD_CONFIG}"
 fi
 
 MEM="-m ${MEMORY}M"
