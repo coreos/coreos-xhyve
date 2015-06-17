@@ -32,14 +32,20 @@ LPC_DEV="-l com1,stdio"
 UUID="-U ${UUID}"
 
 USERS="/Users -network 192.168.64.0 -mask 255.255.255.0 -alldirs -mapall=$(id -u):$(id -g)"
-sudo touch /etc/exports
-if ! grep -qs '^${USERS}$$' /etc/exports; then
-    echo "${USERS}" | sudo tee -a /etc/exports
-fi
-sudo nfsd restart
+function nfsAction () {
+    if [[ -n "$1" ]]; then
+        sudo touch /etc/exports
+        eval "$1"
+        sudo nfsd restart  2>&1 > /dev/null
+    fi
+}
+function cleanExit () {
+    nfsAction 'sudo sed -E -e "\#^${USERS}\$#d" -i.bak /etc/exports'
+}
 
-sudo xhyve $MEM $SMP $PCI_DEV $LPC_DEV $NET $IMG_HDD $UUID -f kexec,imgs/$VMLINUZ,imgs/$INITRD,"$CMDLINE" || true
+nfsAction 'grep -qs "^${USERS}$" /etc/exports || ( echo "${USERS}" | sudo tee -a /etc/exports ) 2>&1 > /dev/null'
 
-sudo touch /etc/exports
-sudo sed -E -e  "s#^${USERS}\$##" -i.bak /etc/exports
-sudo nfsd restart
+trap cleanExit EXIT
+
+sudo xhyve $MEM $SMP $PCI_DEV $LPC_DEV $NET $IMG_HDD $UUID -f kexec,imgs/$VMLINUZ,imgs/$INITRD,"$CMDLINE"
+
