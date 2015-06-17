@@ -158,4 +158,13 @@ INITRD=coreos_production_pxe_image.cpio.gz
 get $VMLINUZ
 get $INITRD
 
-
+kextstat | grep VBox && {
+  echo
+  echo
+  echo "** WARNING **"
+  echo "You have VirtualBox kernel extensions loaded, which might crash your"
+  echo "system if you attempt to start xhyve or run coreos-xhyve. This has been"
+  echo "reported to xhyve's maintainer here:"
+  echo
+  echo "https://github.com/mist64/xhyve/issues/9"
+}
