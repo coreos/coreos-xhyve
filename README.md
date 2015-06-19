@@ -8,6 +8,7 @@
 
 ```
 $ git clone https://github.com/mist64/xhyve
+$ cd xhyve
 $ make
 $ sudo cp build/xhyve /usr/local/bin/
 $ xhyve -h
