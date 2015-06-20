@@ -4,32 +4,31 @@ CHANNEL=${CHANNEL:-alpha}
 
 LATEST=$(ls -r imgs/${CHANNEL}.*.vmlinuz | head -n 1 | sed -e "s,.*${CHANNEL}.,," -e "s,.coreos_.*,,")
 if [[ -z ${LATEST} ]]; then
-    echo "Error: couldn't found anything to load (${CHANNEL} channel)."
+    echo "Error: couldn't found anything to load locally (${CHANNEL} channel)."
     echo "       please run 'coreos-xhyve-fetch' first."
     exit 1
 fi
-
-localUser=$(id -nu)
 VERSION=${VERSION:-${LATEST}}
-MEMORY=${MEMORY:-1024}
-CLOUD_CONFIG=${CLOUD_CONFIG:-https://raw.githubusercontent.com/coreos/coreos-xhyve/master/cloud-init/docker-only.txt}
-UUID=${UUID:-$(uuidgen)}
-SSHKEY=${SSHKEY}
-[[ -n "${SSHKEY}" ]] && SSHKEY="sshkey=\"${SSHKEY}\""
-VMLINUZ=${CHANNEL}.${VERSION}.coreos_production_pxe.vmlinuz
-INITRD=${CHANNEL}.${VERSION}.coreos_production_pxe_image.cpio.gz
-CMDLINE="earlyprintk=serial console=ttyS0 acpi=off localUser=${localUser} ${SSHKEY} coreos.autologin"
 
+CLOUD_CONFIG=${CLOUD_CONFIG:-https://raw.githubusercontent.com/coreos/coreos-xhyve/master/cloud-init/docker-only.txt}
+UUID=${UUID:-$(uuidgen)} && UUID="-U ${UUID}"
+[[ -n "${SSHKEY}" ]] && SSHKEY="sshkey=\"${SSHKEY}\""
+
+PAYLOAD=${CHANNEL}.${VERSION}.coreos_production_pxe
+VMLINUZ=${PAYLOAD}.vmlinuz
+INITRD=${PAYLOAD}_image.cpio.gz
+
+CMDLINE="earlyprintk=serial console=ttyS0 acpi=off localUser=$(id -nu) ${SSHKEY} coreos.autologin"
 if [ $# -ne 1 ]; then
    CMDLINE="${CMDLINE} cloud-config-url=${CLOUD_CONFIG}"
 fi
 
+MEMORY=${MEMORY:-1024}
 MEM="-m ${MEMORY}M"
 #SMP="-c 2"
 NET="-s 2:0,virtio-net"
 PCI_DEV="-s 0:0,hostbridge -s 31,lpc"
 LPC_DEV="-l com1,stdio"
-UUID="-U ${UUID}"
 
 USERS="/Users -network 192.168.64.0 -mask 255.255.255.0 -alldirs -mapall=$(id -u):$(id -g)"
 function nfsAction () {
