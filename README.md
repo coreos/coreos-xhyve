@@ -21,7 +21,9 @@ Usage: xhyve [-behuwxACHPWY] [-c vcpus] [-g <gdb port>] [-l <lpc>]
 
 ### Download and run CoreOS
 
-These two commands will fetch a CoreOS Alpha image, verify it with the build public key, then run it under xhyve.
+By default, the following commands will fetch the latest CoreOS Alpha image
+available, verify it (if you have gpg installed in your system) with the build
+public key, and then run it under xhyve.
 
 ```
 coreos-xhyve-fetch
@@ -70,5 +72,15 @@ And test from your laptop:
 $ curl 192.168.64.1:2379/version
 etcd 2.0.10
 ```
+
+### Customize
+
+The `coreos-xhyve-fetch` and `coreos-xhyve-run` behavior can be customized
+through the following environment variables:
+- **CHANNEL**  
+  defaults to `alpha`.  
+  available alternatives are `stable` and `beta`
+- **VERSION**  
+  defaults to `latest`.
 
 

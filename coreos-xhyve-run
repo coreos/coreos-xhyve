@@ -1,7 +1,19 @@
 #!/bin/bash
 
-VMLINUZ=coreos_production_pxe.vmlinuz
-INITRD=coreos_production_pxe_image.cpio.gz
+CHANNEL=${CHANNEL:-alpha}
+
+LATEST=$(ls -r imgs/${CHANNEL}.*.vmlinuz | head -n 1 | sed -e "s,.*${CHANNEL}.,," -e "s,.coreos_.*,,")
+if [[ -z ${LATEST} ]]; then
+    echo "Error: couldn't find anything to load locally (${CHANNEL} channel)."
+    echo "       please run 'coreos-xhyve-fetch' first."
+    exit 1
+fi
+VERSION=${VERSION:-${LATEST}}
+
+PAYLOAD=${CHANNEL}.${VERSION}.coreos_production_pxe
+VMLINUZ=${PAYLOAD}.vmlinuz
+INITRD=${PAYLOAD}_image.cpio.gz
+
 CMDLINE="earlyprintk=serial console=ttyS0 acpi=off coreos.autologin"
 
 if [ $# -ne 1 ]; then
