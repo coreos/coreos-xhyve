@@ -10,7 +10,7 @@ fi
 
 MEM="-m 1G"
 #SMP="-c 2"
-NET="-s 2:0,virtio-net"
+NET="-U 24b2e363-883f-489e-ba7e-150f26910520 -s 2:0,virtio-net"
 PCI_DEV="-s 0:0,hostbridge -s 31,lpc"
 LPC_DEV="-l com1,stdio"
 
