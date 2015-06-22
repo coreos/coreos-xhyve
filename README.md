@@ -1,10 +1,13 @@
-# CoreOS + xhyve
+# CoreOS + [xhyve](mist64/xhyve)
 
-**WARNING**: xhyve is a very new project, expect bugs! You must be running OS X Yosemite for this to work.
+**WARNING**
+-----------
+ - xhyve is a very new project, expect bugs! You must be running OS X 10.10.3 Yosemite or later and 2010 or later Mac for this to work.
+ - xhyve will crash your system if VirtualBox had been run previously (see xhyve's issues [#5](mist64/xhyve#5) and [#9](mist64/xhyve#9) for the full context). So if you were using it in your current session please do restart your Mac before attempting to run xhyve.
 
 ## Step by Step Instructions
 
-## Get a copy of xhyve
+### Get a copy of xhyve
 
 ```
 $ git clone https://github.com/mist64/xhyve
@@ -16,13 +19,15 @@ Usage: xhyve [-behuwxACHPWY] [-c vcpus] [-g <gdb port>] [-l <lpc>]
 ...
 ```
 
-## Download and run CoreOS 
+### Download and run CoreOS
 
-These two commands will fetch a CoreOS Alpha image, verify it with the build public key, then run it under xhyve.
+By default, the following commands will fetch the latest CoreOS Alpha image
+available, verify it (if you have gpg installed in your system) with the build
+public key, and then run it under xhyve.
 
 ```
 coreos-xhyve-fetch
-sudo coreos-xhyve-run
+coreos-xhyve-run
 ```
 
 In your terminal you should see something like this:
@@ -68,4 +73,39 @@ $ curl 192.168.64.1:2379/version
 etcd 2.0.10
 ```
 
+### Customize
 
+The `coreos-xhyve-fetch` and `coreos-xhyve-run` behavior can be customized
+through the following environment variables:
+- **CHANNEL**  
+  defaults to `alpha`.  
+  available alternatives are `stable` and `beta`
+- **VERSION**  
+  defaults to `latest`.
+- **MEMORY**  
+  defaults to `1024`.  
+  value is understood as being in MB.
+- **UUID**
+  defaults to a random *uuid*.  
+  set to a constant value in order to achieve the same IP address across VM reboots.  
+  As a bonus, on startup, the VMs IP address will be written to
+  `~/.coreos-xhyve/${UUID}`, which should allow one to all sorts of automation tricks.
+- **SSHKEY**  
+  defaults to *none*
+  if set will add the given SSH public key to the core user's authorized_keys file (it is usually in ~/.ssh/id_rsa.pub).
+- **CLOUD_CONFIG**  
+  defaults to `https://raw.githubusercontent.com/coreos/coreos-xhyve/master/cloud-init/docker-only.txt`.  
+  has to be a valid, reachable, URL, pointing to a valid *cloud-config* file.
+
+  > **tip**:  
+  > see [here](https://discussions.apple.com/docs/DOC-3083) for how to
+  > host your custom *cloud-config* locally, so that you can run CoreOS locally
+  > without any online dependencies, then on
+  > `/etc/apache2/users/<YourUsername>.conf` replace `Allow from localhost` by
+  > `Allow from localhost, 192.168.0.0/255.255.0.0`.  
+  > usage would be something like...  
+  > `CLOUD_CONFIG=http://192.168.64.1/~am/coreos-xhyve/xhyve.cloud-init ./coreos-xhyve-run`
+  >
+
+By default `/Users` is mounted inside your CoreOS VM, as `/Users`, so docker
+volumes will work as expected.

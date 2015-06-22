@@ -1,17 +1,50 @@
 #!/bin/bash
 
-VMLINUZ=coreos_production_pxe.vmlinuz
-INITRD=coreos_production_pxe_image.cpio.gz
-CMDLINE="earlyprintk=serial console=ttyS0 acpi=off coreos.autologin"
+CHANNEL=${CHANNEL:-alpha}
 
+LATEST=$(ls -r imgs/${CHANNEL}.*.vmlinuz | head -n 1 | sed -e "s,.*${CHANNEL}.,," -e "s,.coreos_.*,,")
+if [[ -z ${LATEST} ]]; then
+    echo "Error: couldn't found anything to load locally (${CHANNEL} channel)."
+    echo "       please run 'coreos-xhyve-fetch' first."
+    exit 1
+fi
+VERSION=${VERSION:-${LATEST}}
+
+CLOUD_CONFIG=${CLOUD_CONFIG:-https://raw.githubusercontent.com/coreos/coreos-xhyve/master/cloud-init/docker-only.txt}
+UUID=${UUID:-$(uuidgen)} && UUID="-U ${UUID}"
+[[ -n "${SSHKEY}" ]] && SSHKEY="sshkey=\"${SSHKEY}\""
+
+PAYLOAD=${CHANNEL}.${VERSION}.coreos_production_pxe
+VMLINUZ=${PAYLOAD}.vmlinuz
+INITRD=${PAYLOAD}_image.cpio.gz
+
+CMDLINE="earlyprintk=serial console=ttyS0 acpi=off localUser=$(id -nu) ${SSHKEY} coreos.autologin"
 if [ $# -ne 1 ]; then
-	CMDLINE="${CMDLINE} cloud-config-url=https://raw.githubusercontent.com/coreos/coreos-xhyve/master/cloud-init/docker-only.txt"
+   CMDLINE="${CMDLINE} cloud-config-url=${CLOUD_CONFIG}"
 fi
 
-MEM="-m 1G"
+MEMORY=${MEMORY:-1024}
+MEM="-m ${MEMORY}M"
 #SMP="-c 2"
 NET="-s 2:0,virtio-net"
 PCI_DEV="-s 0:0,hostbridge -s 31,lpc"
 LPC_DEV="-l com1,stdio"
 
-xhyve $MEM $SMP $PCI_DEV $LPC_DEV $NET $IMG_HDD -f kexec,imgs/$VMLINUZ,imgs/$INITRD,"$CMDLINE"
+USERS="/Users -network 192.168.64.0 -mask 255.255.255.0 -alldirs -mapall=$(id -u):$(id -g)"
+function nfsAction () {
+    if [[ -n "$1" ]]; then
+        sudo touch /etc/exports
+        eval "$1"
+        sudo nfsd restart  2>&1 > /dev/null
+    fi
+}
+function cleanExit () {
+    nfsAction 'sudo sed -E -e "\#^${USERS}\$#d" -i.bak /etc/exports'
+}
+
+nfsAction 'grep -qs "^${USERS}$" /etc/exports || ( echo "${USERS}" | sudo tee -a /etc/exports ) 2>&1 > /dev/null'
+
+trap cleanExit EXIT
+
+sudo xhyve $MEM $SMP $PCI_DEV $LPC_DEV $NET $IMG_HDD $UUID -f kexec,imgs/$VMLINUZ,imgs/$INITRD,"$CMDLINE"
+
