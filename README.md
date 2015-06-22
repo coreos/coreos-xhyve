@@ -25,7 +25,7 @@ coreos-xhyve-fetch
 sudo coreos-xhyve-run
 ```
 
-In your teminal you should see something like this:
+In your terminal you should see something like this:
 
 ```
 This is localhost (Linux x86_64 4.0.3) 02:59:17
