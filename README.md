@@ -1,6 +1,9 @@
 # CoreOS + xhyve
 
-**WARNING**: xhyve is a very new project, expect bugs! You must be running OS X Yosemite for this to work.
+**WARNING**: xhyve is a very new project, expect bugs! You must be running OS X
+Yosemite for this to work. If you have VirtualBox or other virtualization
+software installed, xhyve may crash your system due to conflicting usages of the
+OS-level virtualization primitives. See mist64/xhyve#5 and mist64/xhyve#9.
 
 ## Step by Step Instructions
 
