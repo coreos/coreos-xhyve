@@ -1,4 +1,4 @@
-# CoreOS + [xhyve](mist64/xhyve)
+# CoreOS + [xhyve](https://github.com/mist64/xhyve)
 
 **WARNING**
 -----------
