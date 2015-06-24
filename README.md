@@ -1,10 +1,13 @@
-# CoreOS + xhyve
+# CoreOS + [xhyve](mist64/xhyve)
 
-**WARNING**: xhyve is a very new project, expect bugs! You must be running OS X Yosemite for this to work.
+**WARNING**
+-----------
+ - xhyve is a very new project, expect bugs! You must be running OS X 10.10.3 Yosemite or later and 2010 or later Mac for this to work.
+ - xhyve will crash your system if VirtualBox had been run previously (see xhyve's issues [#5](mist64/xhyve#5) and [#9](mist64/xhyve#9) for the full context). So if you were using it in your current session please do restart your Mac before attempting to run xhyve.
 
 ## Step by Step Instructions
 
-## Get a copy of xhyve
+### Get a copy of xhyve
 
 ```
 $ git clone https://github.com/mist64/xhyve
@@ -16,7 +19,7 @@ Usage: xhyve [-behuwxACHPWY] [-c vcpus] [-g <gdb port>] [-l <lpc>]
 ...
 ```
 
-## Download and run CoreOS 
+### Download and run CoreOS
 
 These two commands will fetch a CoreOS Alpha image, verify it with the build public key, then run it under xhyve.
 
