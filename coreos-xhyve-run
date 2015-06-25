@@ -10,6 +10,8 @@ if [[ -z ${LATEST} ]]; then
 fi
 VERSION=${VERSION:-${LATEST}}
 
+CLOUD_CONFIG=${CLOUD_CONFIG:-https://raw.githubusercontent.com/coreos/coreos-xhyve/master/cloud-init/docker-only.txt}
+
 PAYLOAD=${CHANNEL}.${VERSION}.coreos_production_pxe
 VMLINUZ=${PAYLOAD}.vmlinuz
 INITRD=${PAYLOAD}_image.cpio.gz
@@ -17,7 +19,7 @@ INITRD=${PAYLOAD}_image.cpio.gz
 CMDLINE="earlyprintk=serial console=ttyS0 acpi=off coreos.autologin"
 
 if [ $# -ne 1 ]; then
-	CMDLINE="${CMDLINE} cloud-config-url=https://raw.githubusercontent.com/coreos/coreos-xhyve/master/cloud-init/docker-only.txt"
+    CMDLINE="${CMDLINE} cloud-config-url=${CLOUD_CONFIG}"
 fi
 
 MEMORY=${MEMORY:-1024}

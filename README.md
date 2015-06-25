@@ -85,3 +85,18 @@ through the following environment variables:
 - **MEMORY**  
   defaults to `1024`.  
   value is understood as being in MB.
+- **CLOUD_CONFIG**  
+  defaults to `https://raw.githubusercontent.com/coreos/coreos-xhyve/master/cloud-init/docker-only.txt`, and has to be a valid, reachable, URL,
+  pointing to a valid *[cloud-config]
+  (https://coreos.com/docs/cluster-management/setup/cloudinit-cloud-config/)*
+  file.
+
+  > **tip**:  
+  > see [here](https://discussions.apple.com/docs/DOC-3083) for how to
+  > host your custom *cloud-config* locally, so that you can run CoreOS locally
+  > without any online dependencies, then on
+  > `/etc/apache2/users/<YourUsername>.conf` replace `Allow from localhost` by
+  > `Allow from localhost, 192.168.0.0/255.255.0.0`.  
+  > usage would be something like...  
+  > `CLOUD_CONFIG=http://192.168.64.1/~am/coreos-xhyve/xhyve.cloud-init ./coreos-xhyve-run`
+
