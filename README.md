@@ -83,6 +83,9 @@ etcd 2.0.10
 
 The `coreos-xhyve-fetch` and `coreos-xhyve-run` behavior can be customized
 through the following environment variables:
+- **XHYVE**
+  sets the absolute location (or name, in which case it will search in the $PATH) of the default *xhyve* binary to use.
+  defaults to `xhyve`.
 - **CHANNEL**  
   defaults to `alpha`.  
   available alternatives are `stable` and `beta`

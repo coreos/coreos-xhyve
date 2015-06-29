@@ -14,6 +14,7 @@ while getopts ":f:" opt; do
     esac
 done
 
+XHYVE=${XHYVE:-xhyve}
 CHANNEL=${CHANNEL:-alpha}
 
 LATEST=$(ls -r imgs/${CHANNEL}.*.vmlinuz | head -n 1 | sed -e "s,.*${CHANNEL}.,," -e "s,.coreos_.*,,")
@@ -42,4 +43,4 @@ NET="-s 2:0,virtio-net"
 PCI_DEV="-s 0:0,hostbridge -s 31,lpc"
 LPC_DEV="-l com1,stdio"
 
-xhyve $MEM $SMP $PCI_DEV $LPC_DEV $NET $IMG_HDD $UUID -f kexec,imgs/$VMLINUZ,imgs/$INITRD,"$CMDLINE"
+${XHYVE} $MEM $SMP $PCI_DEV $LPC_DEV $NET $IMG_HDD $UUID -f kexec,imgs/$VMLINUZ,imgs/$INITRD,"$CMDLINE"
