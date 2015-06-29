@@ -20,7 +20,8 @@ if [ $# -ne 1 ]; then
 	CMDLINE="${CMDLINE} cloud-config-url=https://raw.githubusercontent.com/coreos/coreos-xhyve/master/cloud-init/docker-only.txt"
 fi
 
-MEM="-m 1G"
+MEMORY=${MEMORY:-1024}
+MEM="-m ${MEMORY}M"
 #SMP="-c 2"
 NET="-s 2:0,virtio-net"
 PCI_DEV="-s 0:0,hostbridge -s 31,lpc"
