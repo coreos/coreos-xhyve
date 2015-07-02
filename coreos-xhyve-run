@@ -42,5 +42,6 @@ MEM="-m ${MEMORY}M"
 NET="-s 2:0,virtio-net"
 PCI_DEV="-s 0:0,hostbridge -s 31,lpc"
 LPC_DEV="-l com1,stdio"
+EXTRA_ARGS=${EXTRA_ARGS}
 
-${XHYVE} $MEM $SMP $PCI_DEV $LPC_DEV $NET $IMG_HDD $UUID -f kexec,imgs/$VMLINUZ,imgs/$INITRD,"$CMDLINE"
+${XHYVE} $MEM $SMP $PCI_DEV $LPC_DEV $NET $IMG_HDD $UUID $EXTRA_ARGS -f kexec,imgs/$VMLINUZ,imgs/$INITRD,"$CMDLINE"
