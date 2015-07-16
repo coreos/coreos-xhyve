@@ -7,16 +7,22 @@
 
 ## Step by Step Instructions
 
-### Get a copy of xhyve
-
+### Install xhyve
+#### from [homebrew](http://brew.sh) (recommended)
+```
+$ brew install xhyve
+```
+#### or from [source](https://github.com/mist64/xhyve)
 ```
 $ git clone https://github.com/mist64/xhyve
 $ cd xhyve
 $ make
 $ sudo cp build/xhyve /usr/local/bin/
+```
+#### check it is working...
+```
 $ xhyve -h
-Usage: xhyve [-behuwxACHPWY] [-c vcpus] [-g <gdb port>] [-l <lpc>]
-...
+Usage: xhyve [-behuwxACHPWY] [-c vcpus] [-g <gdb port>] [-l <lpc>] ...
 ```
 
 ### Download and run CoreOS
