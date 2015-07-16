@@ -11,6 +11,7 @@ fi
 VERSION=${VERSION:-${LATEST}}
 
 CLOUD_CONFIG=${CLOUD_CONFIG:-https://raw.githubusercontent.com/coreos/coreos-xhyve/master/cloud-init/docker-only.txt}
+UUID=${UUID:-$(uuidgen)} && UUID="-U ${UUID}"
 
 PAYLOAD=${CHANNEL}.${VERSION}.coreos_production_pxe
 VMLINUZ=${PAYLOAD}.vmlinuz
@@ -29,4 +30,4 @@ NET="-s 2:0,virtio-net"
 PCI_DEV="-s 0:0,hostbridge -s 31,lpc"
 LPC_DEV="-l com1,stdio"
 
-xhyve $MEM $SMP $PCI_DEV $LPC_DEV $NET $IMG_HDD -f kexec,imgs/$VMLINUZ,imgs/$INITRD,"$CMDLINE"
+xhyve $MEM $SMP $PCI_DEV $LPC_DEV $NET $IMG_HDD $UUID -f kexec,imgs/$VMLINUZ,imgs/$INITRD,"$CMDLINE"
