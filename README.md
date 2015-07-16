@@ -110,3 +110,6 @@ through the following environment variables:
   > usage would be something like...  
   > `CLOUD_CONFIG=http://192.168.64.1/~am/coreos-xhyve/xhyve.cloud-init ./coreos-xhyve-run`
 
+For any given VM you can define all your custom settings in a file and then
+just consume it like `coreos-xhyve-run -f custom.conf`.
+See [here](custom.conf) for an example.

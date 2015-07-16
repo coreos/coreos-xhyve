@@ -1,4 +1,18 @@
 #!/bin/bash
+OPTIND=1
+while getopts ":f:" opt; do
+  case ${opt} in
+    f)
+      [[ -r "${OPTARG}" ]] && source "${OPTARG}" || \
+        echo "Warning: couldn't read \"${OPTARG}\". Ignoring." >&2
+      ;;
+    \?)
+      echo "Warning: unsupported option '-${OPTARG}'. Ignoring." >&2
+      ;;
+    :)
+      echo "Warning: no cloud-config provided. Ignoring." >&2
+    esac
+done
 
 CHANNEL=${CHANNEL:-alpha}
 
@@ -19,10 +33,7 @@ VMLINUZ=${PAYLOAD}.vmlinuz
 INITRD=${PAYLOAD}_image.cpio.gz
 
 CMDLINE="earlyprintk=serial console=ttyS0 acpi=off ${SSHKEY} coreos.autologin"
-
-if [ $# -ne 1 ]; then
-    CMDLINE="${CMDLINE} cloud-config-url=${CLOUD_CONFIG}"
-fi
+CMDLINE="${CMDLINE} cloud-config-url=${CLOUD_CONFIG}"
 
 MEMORY=${MEMORY:-1024}
 MEM="-m ${MEMORY}M"
