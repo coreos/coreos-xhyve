@@ -88,6 +88,13 @@ through the following environment variables:
 - **UUID**
   defaults to a random *uuid*.  
   set to a constant value in order to achieve the same IP address across VM reboots.
+- **SSHKEY**  
+  defaults to *none*
+  if set it will add, on startup, the given SSH public key to the *core*
+  user's authorized_keys file (it is usually in ~/.ssh/id_rsa.pub).  
+  ```
+  sudo coreos-xhyve-run SSHKEY="ssh-rsa AAAAB3...== x@y.z" ...
+  ```
 - **CLOUD_CONFIG**  
   defaults to `https://raw.githubusercontent.com/coreos/coreos-xhyve/master/cloud-init/docker-only.txt`, and has to be a valid, reachable, URL,
   pointing to a valid *[cloud-config]

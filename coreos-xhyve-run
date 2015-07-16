@@ -12,12 +12,13 @@ VERSION=${VERSION:-${LATEST}}
 
 CLOUD_CONFIG=${CLOUD_CONFIG:-https://raw.githubusercontent.com/coreos/coreos-xhyve/master/cloud-init/docker-only.txt}
 UUID=${UUID:-$(uuidgen)} && UUID="-U ${UUID}"
+[[ -n "${SSHKEY}" ]] && SSHKEY="sshkey=\"${SSHKEY}\""
 
 PAYLOAD=${CHANNEL}.${VERSION}.coreos_production_pxe
 VMLINUZ=${PAYLOAD}.vmlinuz
 INITRD=${PAYLOAD}_image.cpio.gz
 
-CMDLINE="earlyprintk=serial console=ttyS0 acpi=off coreos.autologin"
+CMDLINE="earlyprintk=serial console=ttyS0 acpi=off ${SSHKEY} coreos.autologin"
 
 if [ $# -ne 1 ]; then
     CMDLINE="${CMDLINE} cloud-config-url=${CLOUD_CONFIG}"
