@@ -112,9 +112,8 @@ through the following environment variables:
 
   How to host cloud-config locally:
   ```
-  cd cloud-init && python -m SimpleHTTPServer >/dev/null 2>&1 &
-  ``` 
-  ```
+  cd cloud-init 
+  python -m SimpleHTTPServer >/dev/null 2>&1 &
   cd ..
   ```
   Usage would be something like:
