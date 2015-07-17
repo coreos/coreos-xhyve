@@ -110,14 +110,17 @@ through the following environment variables:
   (https://coreos.com/docs/cluster-management/setup/cloudinit-cloud-config/)*
   file.
 
-  > **tip**:  
-  > see [here](https://discussions.apple.com/docs/DOC-3083) for how to
-  > host your custom *cloud-config* locally, so that you can run CoreOS locally
-  > without any online dependencies, then on
-  > `/etc/apache2/users/<YourUsername>.conf` replace `Allow from localhost` by
-  > `Allow from localhost, 192.168.0.0/255.255.0.0`.  
-  > usage would be something like...  
-  > `CLOUD_CONFIG=http://192.168.64.1/~am/coreos-xhyve/xhyve.cloud-init ./coreos-xhyve-run`
+  How to host cloud-config locally:
+  ```
+  cd cloud-init && python -m SimpleHTTPServer >/dev/null 2>&1 &
+  ``` 
+  ```
+  cd ..
+  ```
+  Usage would be something like:
+  ```
+  CLOUD_CONFIG=http://192.168.64.1:8000/user-data ./coreos-xhyve-run
+  ```
 
 For any given VM you can define all your custom settings in a file and then
 just consume it like `coreos-xhyve-run -f custom.conf`.
