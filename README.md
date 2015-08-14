@@ -91,6 +91,8 @@ through the following environment variables:
   available alternatives are `stable` and `beta`
 - **VERSION**  
   defaults to `latest`.
+- **CPUS**  
+  defaults to `1`.
 - **MEMORY**  
   defaults to `1024`.  
   value is understood as being in MB.
@@ -104,6 +106,9 @@ through the following environment variables:
   ```
   sudo coreos-xhyve-run SSHKEY="ssh-rsa AAAAB3...== x@y.z" ...
   ```
+- **EXTRA_ARGS**  
+  defaults to *none*.  
+  used to manually set additional VM parameters that do not fit elsewhere (tap devices, etc).
 - **CLOUD_CONFIG**  
   defaults to `https://raw.githubusercontent.com/coreos/coreos-xhyve/master/cloud-init/docker-only.txt`, and has to be a valid, reachable, URL,
   pointing to a valid *[cloud-config]
