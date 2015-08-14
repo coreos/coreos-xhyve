@@ -1,4 +1,8 @@
 #!/bin/bash
+scriptName=$(basename "${BASH_SOURCE}")
+UUID=${UUID:-$(uuidgen)}
+LOGGER="logger -si -t ${scriptName} (${UUID}) "
+UUID="-U ${UUID}"
 OPTIND=1
 while getopts ":f:" opt; do
   case ${opt} in
@@ -26,7 +30,6 @@ fi
 VERSION=${VERSION:-${LATEST}}
 
 CLOUD_CONFIG=${CLOUD_CONFIG:-https://raw.githubusercontent.com/coreos/coreos-xhyve/master/cloud-init/docker-only.txt}
-UUID=${UUID:-$(uuidgen)} && UUID="-U ${UUID}"
 [[ -n "${SSHKEY}" ]] && SSHKEY="sshkey=\"${SSHKEY}\""
 
 PAYLOAD=${CHANNEL}.${VERSION}.coreos_production_pxe
@@ -43,4 +46,6 @@ NET="-s 2:0,virtio-net"
 PCI_DEV="-s 0:0,hostbridge -s 31,lpc"
 LPC_DEV="-l com1,stdio"
 
-${XHYVE} $MEM $SMP $PCI_DEV $LPC_DEV $NET $IMG_HDD $UUID -f kexec,imgs/$VMLINUZ,imgs/$INITRD,"$CMDLINE"
+${LOGGER} ${XHYVE} ${MEM} ${SMP} ${PCI_DEV} ${LPC_DEV} ${NET} ${IMG_HDD} ${UUID} -f kexec,imgs/${VMLINUZ},imgs/${INITRD},"${CMDLINE}"
+${XHYVE}           ${MEM} ${SMP} ${PCI_DEV} ${LPC_DEV} ${NET} ${IMG_HDD} ${UUID} -f kexec,imgs/${VMLINUZ},imgs/${INITRD},"${CMDLINE}"
+${LOGGER} "(exited with $?)"
