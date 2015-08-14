@@ -91,6 +91,8 @@ through the following environment variables:
   available alternatives are `stable` and `beta`
 - **VERSION**  
   defaults to `latest`.
+- **CPUS**  
+  defaults to `1`.
 - **MEMORY**  
   defaults to `1024`.  
   value is understood as being in MB.

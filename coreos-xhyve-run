@@ -33,12 +33,13 @@ PAYLOAD=${CHANNEL}.${VERSION}.coreos_production_pxe
 VMLINUZ=${PAYLOAD}.vmlinuz
 INITRD=${PAYLOAD}_image.cpio.gz
 
-CMDLINE="earlyprintk=serial console=ttyS0 acpi=off ${SSHKEY} coreos.autologin"
+CMDLINE="earlyprintk=serial console=ttyS0 ${SSHKEY} coreos.autologin"
 CMDLINE="${CMDLINE} cloud-config-url=${CLOUD_CONFIG}"
 
 MEMORY=${MEMORY:-1024}
 MEM="-m ${MEMORY}M"
-#SMP="-c 2"
+CPUS=${CPUS:-1}
+SMP="-c ${CPUS} -A"
 NET="-s 2:0,virtio-net"
 PCI_DEV="-s 0:0,hostbridge -s 31,lpc"
 LPC_DEV="-l com1,stdio"
