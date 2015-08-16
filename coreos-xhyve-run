@@ -43,6 +43,15 @@ SMP="-c ${CPUS} -A"
 NET="-s 2:0,virtio-net"
 PCI_DEV="-s 0:0,hostbridge -s 31,lpc"
 LPC_DEV="-l com1,stdio"
+if [ -n "$ROOT_HDD" ]; then
+    ROOT="-s 4,virtio-blk,$ROOT_HDD"
+    if [ -n "$ROOT_LABEL" ]; then
+        LOC="LABEL=$ROOT_LABEL"
+    else
+        LOC="/dev/vda"
+    fi
+    CMDLINE="${CMDLINE} root=$LOC rootfstype=ext4"
+fi
 EXTRA_ARGS=${EXTRA_ARGS}
 
-${XHYVE} $MEM $SMP $PCI_DEV $LPC_DEV $NET $IMG_HDD $UUID $EXTRA_ARGS -f kexec,imgs/$VMLINUZ,imgs/$INITRD,"$CMDLINE"
+${XHYVE} $MEM $SMP $PCI_DEV $LPC_DEV $NET $ROOT $UUID $EXTRA_ARGS -f kexec,imgs/$VMLINUZ,imgs/$INITRD,"$CMDLINE"
