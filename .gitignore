@@ -1,1 +1,7 @@
+.imdone
+.imdoneignore
 imgs
+*.img
+coreos
+tmp.*
+blablabla.go
