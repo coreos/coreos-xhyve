@@ -1,0 +1,89 @@
+.TH "coreos" "1" "" " " ""  ""
+
+
+.SH NAME
+.PP
+coreos run \- Starts a new CoreOS instance
+
+
+.SH SYNOPSIS
+.PP
+\fBcoreos run\fP [OPTIONS]
+
+
+.SH DESCRIPTION
+.PP
+Starts a new CoreOS instance
+
+
+.SH OPTIONS
+.PP
+\fB\-\-cdrom\fP=""
+    append an CDROM (.iso) to VM
+
+.PP
+\fB\-\-channel\fP="alpha"
+    CoreOS channel
+
+.PP
+\fB\-\-cloud\_config\fP=""
+    cloud\-config file location (either URL or local path)
+
+.PP
+\fB\-\-cpus\fP=1
+    VM's vCPUS
+
+.PP
+\fB\-d\fP, \fB\-\-detached\fP[=false]
+    starts the VM in detached (background) mode
+
+.PP
+\fB\-\-memory\fP=1024
+    VM's RAM
+
+.PP
+\fB\-n\fP, \fB\-\-name\fP=""
+    names the VM. (the default is the uuid)
+
+.PP
+\fB\-\-root\fP=""
+    append a (persistent) root volume to VM
+
+.PP
+\fB\-\-sshkey\fP=""
+    VM's default ssh key
+
+.PP
+\fB\-\-tap\fP=""
+    append tap interface to VM
+
+.PP
+\fB\-\-uuid\fP="random"
+    VM's UUID
+
+.PP
+\fB\-\-version\fP="latest"
+    CoreOS version
+
+.PP
+\fB\-\-volume\fP=[]
+    append disk volumes to VM
+
+.PP
+\fB\-\-xhyve\fP="/usr/local/bin/xhyve"
+    xhyve binary to use
+
+
+.SH OPTIONS INHERITED FROM PARENT COMMANDS
+.PP
+\fB\-\-debug\fP[=false]
+    adds extra verbosity, and options, for debugging purposes and/or power users
+
+
+.SH SEE ALSO
+.PP
+\fBcoreos(1)\fP,
+
+
+.SH HISTORY
+.PP

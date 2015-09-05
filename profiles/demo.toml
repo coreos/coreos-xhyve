@@ -1,0 +1,11 @@
+sshkey = "ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAzPAq1jQAayz8kqVhtZfpgd9+4at+SwDYB9xovghbJMhqhk0wAoosHDQyG8SPmro9BnhEaX46gm4QDURCYDLKV/87gb6TjbZxSsF8Hkg4FmpQRnSGAXoBto6ipNhrG0rwgXbcb4EzQ+uAYVNyv53gmOO2Jh8J33oOHfLJCp5Y2RcEUtakSMw1VLQCoqw0CjQcJrA7t8vs8nwRD8ONquO0XwyXHotn8Tqrh/6vk+4SufxMobb0iJ4GeOUoHQWmIbFbFcdlbr+mL3i6wu2dYabRQTTr7ZMm8+0C6LgcXWdfaN7ocfzIl1ng68PC3AiY9y7lpIixj9gb9msMmXfSoxKuVw== am@mobile.reboot.sh"
+cpus = 1
+memory = 1024
+[containerLand]
+    cpus = 2
+    memory = "2048"
+    cloud_config = "cloud-init/docker-only-with-persistent-storage.txt"
+    volume = "var_lib_docker.img"
+[xpto]
+    memory = 2048
+    tap = "/dev/tap0"
