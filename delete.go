@@ -63,6 +63,7 @@ func rmCommand(cmd *cobra.Command, args []string) (err error) {
 				channel, "/", v.String())); err != nil {
 				return
 			}
+			log.Printf("removed %s/%s\n", channel, version)
 		}
 		return
 	}
@@ -81,7 +82,10 @@ func rmCommand(cmd *cobra.Command, args []string) (err error) {
 		log.Printf("%s/%s not found\n", channel, version)
 		return nil
 	}
-	return os.RemoveAll(target)
+	if err = os.RemoveAll(target); err == nil {
+		log.Printf("removed %s/%s\n", channel, version)
+	}
+	return
 }
 
 func init() {
