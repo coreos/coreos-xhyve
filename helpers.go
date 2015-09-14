@@ -185,7 +185,7 @@ func downloadAndVerify(channel,
 
 		writer := io.MultiWriter(sha512h, bar, output)
 		io.Copy(writer, r.Body)
-
+		bar.Finish()
 		if hex.EncodeToString(sha512h.Sum([]byte{})) != bzHashSHA512 {
 			return l, fmt.Errorf("SHA512 hash verification failed for %s",
 				fileName)
