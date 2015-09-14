@@ -67,12 +67,18 @@ func rmCommand(cmd *cobra.Command, args []string) (err error) {
 	}
 
 	if version == "latest" {
-		version = l[l.Len()-1].String()
+		if l.Len() > 0 {
+			version = l[l.Len()-1].String()
+		} else {
+			log.Println("nothing to delete")
+			return
+		}
 	}
 
 	target := filepath.Join(SessionContext.imageDir, channel, "/", version)
 	if _, err = os.Stat(target); err != nil {
-		return err
+		log.Printf("%s/%s not found\n", channel, version)
+		return nil
 	}
 	return os.RemoveAll(target)
 }
