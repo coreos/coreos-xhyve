@@ -198,23 +198,26 @@ func downloadAndVerify(channel,
 }
 
 // sshKeyGen creates a one-time ssh public and private key pair
-func sshKeyGen() (string, string, error) {
-	secret, err := rsa.GenerateKey(rand.Reader, 2014)
-	if err != nil {
-		return "", "", err
+func sshKeyGen() (a string, b string, err error) {
+	var (
+		public ssh.PublicKey
+		secret *rsa.PrivateKey
+	)
+
+	if secret, err = rsa.GenerateKey(rand.Reader, 2014); err != nil {
+		return
 	}
 
 	secretDer := x509.MarshalPKCS1PrivateKey(secret)
 	secretBlk := pem.Block{
 		Type: "RSA PRIVATE KEY", Headers: nil, Bytes: secretDer,
 	}
+	if public, err = ssh.NewPublicKey(&secret.PublicKey); err != nil {
+		return
+	}
 
-	privateKey := string(pem.EncodeToMemory(&secretBlk))
-
-	public, _ := ssh.NewPublicKey(&secret.PublicKey)
-	publicFormated := string(ssh.MarshalAuthorizedKey(public))
-
-	return privateKey, publicFormated, nil
+	return string(pem.EncodeToMemory(&secretBlk)),
+		string(ssh.MarshalAuthorizedKey(public)), err
 }
 
 func (session *sessionInfo) init() (err error) {
