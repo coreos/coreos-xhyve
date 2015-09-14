@@ -43,7 +43,7 @@ var (
 
 func pullCommand(cmd *cobra.Command, args []string) (err error) {
 	_, _, err = lookupImage(normalizeChannelName(vipre.GetString("channel")),
-		vipre.GetString("version"), vipre.GetBool("force"))
+		normalizeVersion(vipre.GetString("version")), vipre.GetBool("force"))
 	return
 }
 
