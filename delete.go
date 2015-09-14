@@ -17,6 +17,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 
@@ -45,8 +46,8 @@ func defaultPreRunE(cmd *cobra.Command, args []string) (err error) {
 
 func rmCommand(cmd *cobra.Command, args []string) (err error) {
 	var (
-		channel = vipre.GetString("channel")
-		version = vipre.GetString("version")
+		channel = normalizeChannelName(vipre.GetString("channel"))
+		version = normalizeVersion(vipre.GetString("version"))
 		ll      map[string]semver.Versions
 		l       semver.Versions
 	)

@@ -63,7 +63,7 @@ func bootVM(vipre *viper.Viper) (err error) {
 
 	if vm.Channel, vm.Version, err = lookupImage(
 		normalizeChannelName(vipre.GetString("channel")),
-		vipre.GetString("version"), false); err != nil {
+		normalizeVersion(vipre.GetString("version")), false); err != nil {
 		return
 	}
 	if err = vm.validateNameAndUUID(vipre.GetString("name"),

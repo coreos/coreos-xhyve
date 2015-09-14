@@ -48,13 +48,14 @@ func lsCommand(cmd *cobra.Command, args []string) (err error) {
 	if vipre.GetBool("all") {
 		channels = DefaultChannels
 	} else {
-		channels = append(channels, vipre.GetString("channel"))
+		channels = append(channels,
+			normalizeChannelName(vipre.GetString("channel")))
 	}
 	if vipre.GetBool("json") {
 		var pp []byte
 		if len(channels) == 1 {
 			if pp, err = json.MarshalIndent(
-				local[vipre.GetString("channel")],
+				local[normalizeChannelName(vipre.GetString("channel"))],
 				"", "    "); err != nil {
 				return
 			}

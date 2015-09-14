@@ -269,6 +269,18 @@ func normalizeChannelName(channel string) string {
 	return "alpha"
 }
 
+func normalizeVersion(version string) string {
+	if version == "latest" {
+		return version
+	}
+	if _, err := semver.Parse(version); err != nil {
+		log.Printf("'%s' is not in a recognizable CoreOS version format. %s",
+			version, "Using default ('latest') instead")
+		return "latest"
+	}
+	return version
+}
+
 func (vm *VMInfo) isActive() bool {
 	if p, _ := ps.FindProcess(vm.Pid); p == nil ||
 		!strings.HasPrefix(p.Executable(), "xhyve") {
