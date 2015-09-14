@@ -166,5 +166,3 @@ VMLINUZ=coreos_production_pxe.vmlinuz
 INITRD=coreos_production_pxe_image.cpio.gz
 get $VMLINUZ
 get $INITRD
-
-
