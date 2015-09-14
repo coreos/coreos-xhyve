@@ -75,7 +75,7 @@ func bootVM(vipre *viper.Viper) (err error) {
 	vm.Cpus = vipre.GetInt("cpus")
 	vm.Extra = vipre.GetString("extra")
 	vm.SSHkey = vipre.GetString("sshkey")
-	vm.Root = -1
+	vm.Root, vm.Pid = -1, -1
 
 	if err = vm.xhyveCheck(vipre.GetString("xhyve")); err != nil {
 		return

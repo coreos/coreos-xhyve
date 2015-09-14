@@ -59,8 +59,6 @@ func killCommand(cmd *cobra.Command, args []string) (err error) {
 				if err = vm.halt(); err != nil {
 					return err
 				}
-			} else {
-				return fmt.Errorf("%v is already dead or never was up", arg)
 			}
 		}
 	}

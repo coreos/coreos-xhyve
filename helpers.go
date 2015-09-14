@@ -373,8 +373,24 @@ func normalizeVersion(version string) string {
 }
 
 func (vm *VMInfo) isActive() bool {
+	clean := func() {
+		staled := filepath.Join(SessionContext.runDir, vm.UUID)
+		if SessionContext.debug {
+			log.Println("removing staled", staled)
+		}
+
+		if e :=
+			os.RemoveAll(staled); e != nil {
+			log.Println(e)
+		}
+	}
+	if vm.Pid < 0 {
+		clean()
+		return false
+	}
 	if p, _ := ps.FindProcess(vm.Pid); p == nil ||
 		!strings.HasPrefix(p.Executable(), "xhyve") {
+		clean()
 		return false
 	}
 	return true
