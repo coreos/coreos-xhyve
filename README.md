@@ -98,7 +98,9 @@ through the following environment variables:
   value is understood as being in MB.
 - **UUID**
   defaults to a random *uuid*.  
-  set to a constant value in order to achieve the same IP address across VM reboots.
+  set to a constant value in order to achieve the same IP address across VM reboots.  
+  As a bonus, on startup, the VMs IP address will be written to
+  `~/.coreos-xhyve/${UUID}`, which should allow one to all sorts of automation tricks.
 - **SSHKEY**  
   defaults to *none*
   if set it will add, on startup, the given SSH public key to the *core*
@@ -123,6 +125,9 @@ through the following environment variables:
   > `Allow from localhost, 192.168.0.0/255.255.0.0`.  
   > usage would be something like...  
   > `CLOUD_CONFIG=http://192.168.64.1/~am/coreos-xhyve/xhyve.cloud-init ./coreos-xhyve-run`
+
+By default `/Users` is (NFS) mounted inside your CoreOS VM, as `/Users`,
+so that docker volumes will just work as expected.
 
 For any given VM you can define all your custom settings in a file and then
 just consume it like `coreos-xhyve-run -f custom.conf`.

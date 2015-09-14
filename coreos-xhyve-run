@@ -33,7 +33,8 @@ PAYLOAD=${CHANNEL}.${VERSION}.coreos_production_pxe
 VMLINUZ=${PAYLOAD}.vmlinuz
 INITRD=${PAYLOAD}_image.cpio.gz
 
-CMDLINE="earlyprintk=serial console=ttyS0 ${SSHKEY} coreos.autologin"
+
+CMDLINE="earlyprintk=serial console=ttyS0 localUser=$(id -nu) ${SSHKEY} coreos.autologin"
 CMDLINE="${CMDLINE} cloud-config-url=${CLOUD_CONFIG}"
 
 MEMORY=${MEMORY:-1024}
@@ -45,4 +46,22 @@ PCI_DEV="-s 0:0,hostbridge -s 31,lpc"
 LPC_DEV="-l com1,stdio"
 EXTRA_ARGS=${EXTRA_ARGS}
 
-${XHYVE} $MEM $SMP $PCI_DEV $LPC_DEV $NET $IMG_HDD $UUID $EXTRA_ARGS -f kexec,imgs/$VMLINUZ,imgs/$INITRD,"$CMDLINE"
+USERS="/Users -network 192.168.64.0 -mask 255.255.255.0 -alldirs -mapall=$(id -u):$(id -g)"
+
+function nfsAction () {
+    if [[ -n "$1" ]]; then
+        sudo touch /etc/exports
+        eval "$1"
+        sudo nfsd restart  2>&1 > /dev/null
+    fi
+}
+
+function cleanExit () {
+  # only clean if no other VMs running...
+  [[ -n $(ls ~/.coreos-xhyve) ]] || nfsAction 'sudo sed -E -e "\#^${USERS}\$#d" -i.bak /etc/exports'
+}
+
+nfsAction 'grep -qs "^${USERS}$" /etc/exports || ( echo "${USERS}" | sudo tee -a /etc/exports ) 2>&1 > /dev/null'
+
+trap cleanExit EXIT
+${XHYVE} ${MEM} ${SMP} ${PCI_DEV} ${LPC_DEV} ${NET} ${IMG_HDD} ${UUID} ${EXTRA_ARGS} -f kexec,imgs/${VMLINUZ},imgs/${INITRD},"${CMDLINE}"
