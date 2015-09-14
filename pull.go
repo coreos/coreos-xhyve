@@ -97,9 +97,6 @@ func lookupImage(channel, version string, override bool) (a, b string, err error
 		return channel, version, err
 	}
 	l = ll[channel]
-	if SessionContext.debug {
-		fmt.Printf("checking CoreOS %s/%s\n", channel, version)
-	}
 	if version == "latest" {
 		if releaseInfo, err = findLatestUpstream(channel); err != nil {
 			// as we're probably offline
@@ -120,9 +117,7 @@ func lookupImage(channel, version string, override bool) (a, b string, err error
 		}
 	}
 	if isLocal && !override {
-		if SessionContext.debug {
-			fmt.Println("    -", version, "already downloaded.")
-		}
+		log.Printf("%s/%s already available or your system\n", channel, version)
 		return channel, version, err
 	}
 	return localize(channel, version)
@@ -182,6 +177,8 @@ func localize(channel, version string) (a string, b string, err error) {
 			return channel, version, err
 		}
 	}
-
-	return channel, version, normalizeOnDiskPermissions(destination)
+	if err = normalizeOnDiskPermissions(destination); err == nil {
+		log.Printf("%s/%s ready\n", channel, version)
+	}
+	return channel, version, err
 }

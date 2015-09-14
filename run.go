@@ -122,7 +122,6 @@ func bootVM(vipre *viper.Viper) (err error) {
 	usersDir := &etcExports{}
 	usersDir.share()
 
-	fmt.Println("\nbooting ...")
 	if c, err = vm.assembleBootPayload(); err != nil {
 		return
 	}
@@ -174,9 +173,9 @@ func runFlagsDefaults(setFlag *pflag.FlagSet) {
 	setFlag.String("sshkey", "", "VM's default ssh key")
 	setFlag.String("xhyve", "/usr/local/bin/xhyve", "xhyve binary to use")
 
-	if SessionContext.debug {
-		setFlag.String("extra", "", "additional arguments to xhyve hypervisor")
-	}
+	// available but hidden...
+	setFlag.String("extra", "", "additional arguments to xhyve hypervisor")
+	setFlag.MarkHidden("extra")
 
 	setFlag.String("root", "", "append a (persistent) root volume to VM")
 	setFlag.String("cdrom", "", "append an CDROM (.iso) to VM")

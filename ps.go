@@ -19,6 +19,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -57,7 +58,7 @@ func psCommand(cmd *cobra.Command, args []string) (err error) {
 	for _, vm := range running {
 		totalC, totalM = totalC+vm.Cpus, totalM+vm.Memory
 	}
-	fmt.Printf("found %v running VMs, summing %v vCPUs and %vMB in use.\n",
+	log.Printf("found %v running VMs, summing %v vCPUs and %vMB in use.\n",
 		totalV, totalC, totalM)
 	for _, vm := range running {
 		vm.pp(vipre.GetBool("all"))

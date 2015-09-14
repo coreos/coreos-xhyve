@@ -71,13 +71,16 @@ func (vm *VMInfo) halt() (err error) {
 		log.Printf("couldn't ssh to %v (%v)...\n", vm.Name, e)
 		if p, ee := os.FindProcess(vm.Pid); ee == nil {
 			log.Println("hard kill...")
-			if eee := p.Kill(); eee != nil {
-				return eee
+			if err = p.Kill(); err != nil {
+				return
 			}
 		}
+		log.Printf("successfully halted %s\n", vm.Name)
 		return nil
 	}
-	_, err = vm.sshRunCommand([]string{"sudo halt"})
+	if _, err = vm.sshRunCommand([]string{"sudo halt"}); err == nil {
+		log.Printf("sucessefully halted %s\n", vm.Name)
+	}
 	return
 }
 
