@@ -445,6 +445,20 @@ func (vm *VMInfo) addTAPinterface(tap string) (err error) {
 	if _, err = os.Stat(tap); err != nil {
 		return
 	}
+	// check atomicity
+	var up []VMInfo
+	if up, err = allRunningInstances(); err != nil {
+		return
+	}
+	for _, d := range up {
+		for _, vv := range d.Ethernet {
+			if dev == vv.Path {
+				return fmt.Errorf("Aborting: %s already being used  "+
+					"by another VM (%s)", dev,
+					d.Name)
+			}
+		}
+	}
 	vm.Ethernet = append(vm.Ethernet, NetworkInterface{
 		Type: Tap, Path: dev,
 	})
