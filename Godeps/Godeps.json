@@ -57,6 +57,10 @@
 			"Rev": "281073eb9eb092240d33ef253c404f1cca550309"
 		},
 		{
+			"ImportPath": "github.com/rakyll/pb",
+			"Rev": "dc507ad06b7462501281bb4691ee43f0b1d1ec37"
+		},
+		{
 			"ImportPath": "github.com/russross/blackfriday",
 			"Comment": "v1.2-80-g8cec3a8",
 			"Rev": "8cec3a854e68dba10faabbe31c089abf4a3e57a6"
@@ -90,7 +94,15 @@
 			"Rev": "1967d93db724f4a5c0e101307e96d82ff520a067"
 		},
 		{
+			"ImportPath": "golang.org/x/crypto/cast5",
+			"Rev": "aedad9a179ec1ea11b7064c57cbc6dc30d7724ec"
+		},
+		{
 			"ImportPath": "golang.org/x/crypto/curve25519",
+			"Rev": "aedad9a179ec1ea11b7064c57cbc6dc30d7724ec"
+		},
+		{
+			"ImportPath": "golang.org/x/crypto/openpgp",
 			"Rev": "aedad9a179ec1ea11b7064c57cbc6dc30d7724ec"
 		},
 		{

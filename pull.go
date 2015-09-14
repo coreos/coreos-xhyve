@@ -22,7 +22,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strings"
 
@@ -54,58 +53,64 @@ func init() {
 	RootCmd.AddCommand(pullCmd)
 }
 
-func findLatestUpstream(channel, version string) (v string, err error) {
+func findLatestUpstream(channel string) (releaseInfo map[string]string, err error) {
 	var (
-		upstream = fmt.Sprintf("http://%s.%s/%s",
-			channel, "release.core-os.net", "amd64-usr/current/version.txt")
-		signature = "COREOS_VERSION="
-		response  *http.Response
-		s         *bufio.Scanner
+		upstream = fmt.Sprintf("http://%s.%s/%s", channel,
+			"release.core-os.net", "amd64-usr/current/version.txt")
+		response *http.Response
+		s        *bufio.Scanner
 	)
+	releaseInfo = make(map[string]string)
 	if response, err = http.Get(upstream); err != nil {
 		// we're probably offline
-		return version, err
+		return
 	}
-	if response != nil {
-		defer response.Body.Close()
-	}
+
+	defer response.Body.Close()
 
 	s = bufio.NewScanner(response.Body)
 	s.Split(bufio.ScanLines)
 	for s.Scan() {
 		line := s.Text()
-		if strings.HasPrefix(line, signature) {
-			version = strings.TrimPrefix(line, signature)
-			return version, err
+		if eq := strings.Index(line, "="); eq >= 0 {
+			if key := strings.TrimSpace(line[:eq]); len(key) > 0 {
+				v := ""
+				if len(line) > eq {
+					v = strings.TrimSpace(line[eq+1:])
+				}
+				releaseInfo[key] = v
+			}
 		}
 	}
-	// shouldn 't happen ever. will be treated as if offline'
-	return version, fmt.Errorf("version not found parsing %s (!)", upstream)
+	return
 }
 
 func lookupImage(channel, version string, override bool) (a, b string, err error) {
 	var (
-		isLocal bool
-		ll      map[string]semver.Versions
-		l       semver.Versions
+		isLocal     bool
+		ll          map[string]semver.Versions
+		l           semver.Versions
+		releaseInfo map[string]string
 	)
+
 	if ll, err = localImages(); err != nil {
-		return
+		return channel, version, err
 	}
 	l = ll[channel]
-
 	if SessionContext.debug {
 		fmt.Printf("checking CoreOS %s/%s\n", channel, version)
 	}
 	if version == "latest" {
-		if version, err = findLatestUpstream(channel, version); err != nil {
+		if releaseInfo, err = findLatestUpstream(channel); err != nil {
 			// as we're probably offline
 			if len(l) == 0 {
-				return channel, version,
-					fmt.Errorf("offline and not a single locally image"+
-						"available for '%s' channel", channel)
+				err = fmt.Errorf("offline and not a single locally image"+
+					"available for '%s' channel", channel)
+				return channel, version, err
 			}
 			version = l[l.Len()-1].String()
+		} else {
+			version = releaseInfo["COREOS_VERSION"]
 		}
 	}
 	for _, i := range l {
@@ -120,85 +125,41 @@ func lookupImage(channel, version string, override bool) (a, b string, err error
 		}
 		return channel, version, err
 	}
-
-	return downloadAndVerify(channel, version)
+	return localize(channel, version)
 }
 
-func downloadAndVerify(channel, version string) (a, b string, err error) {
-	var (
-		root = fmt.Sprintf("http://%s.release.core-os.net/amd64-usr/%s/",
-			channel, version)
-		dest = fmt.Sprintf("%s/%s/%s", SessionContext.imageDir,
-			channel, version)
-		prefix = "coreos_production_pxe"
-		files  = []string{fmt.Sprintf("%s.vmlinuz", prefix),
-			fmt.Sprintf("%s_image.cpio.gz", prefix)}
-		f, fn, dir, tmpDir, sig string
-		out                     []byte
-	)
+func localize(channel, version string) (a string, b string, err error) {
+	var files map[string]string
+	destination := fmt.Sprintf("%s/%s/%s", SessionContext.imageDir,
+		channel, version)
 
-	if err = os.MkdirAll(dest, 0755); err != nil {
+	if err = os.MkdirAll(destination, 0755); err != nil {
 		return channel, version, err
 	}
-
-	for _, j := range files {
-		t := fmt.Sprintf("%s%s", root, j)
-
-		if f, err = downloadFile(t); err != nil {
-			return channel, version, err
-		}
-		if sig, err = downloadFile(fmt.Sprintf("%s.sig", t)); err != nil {
-			return channel, version, err
-		}
-
-		dir, fn = filepath.Dir(f), filepath.Base(f)
-
-		if tmpDir, err = ioutil.TempDir("", ""); err != nil {
-			return channel, version, err
-		}
-		defer func() {
-			if e := os.RemoveAll(tmpDir); e != nil {
+	if files, err = downloadAndVerify(channel, version); err != nil {
+		return channel, version, err
+	}
+	defer func() {
+		for _, location := range files {
+			if e := os.RemoveAll(filepath.Dir(location)); e != nil {
 				log.Println(e)
 			}
-			if e := os.RemoveAll(dir); e != nil {
-				log.Println(e)
-			}
-		}()
-
-		if _, err = exec.LookPath("gpg"); err != nil {
-			log.Println("'gpg' not found in PATH.",
-				"Unable to verify downloaded image's autenticity.")
-		} else {
-			verify := sh.NewSession()
-
-			verify.SetEnv("GNUPGHOME", tmpDir)
-			verify.SetEnv("GPG_LONG_ID", GPGLongID)
-			verify.SetEnv("GPG_KEY", GPGKey)
-			verify.ShowCMD = false
-
-			verify.Command("gpg", "--batch", "--quiet",
-				"--import").SetInput(GPGKey).CombinedOutput()
-			out, err = verify.Command("gpg", "--batch", "--trusted-key",
-				GPGLongID, "--verify", sig, f).CombinedOutput()
-			legit := fmt.Sprintf("%s %s",
-				"Good signature from \"CoreOS Buildbot",
-				"(Offical Builds) <buildbot@coreos.com>\" [ultimate]")
-			if err != nil || !strings.Contains(string(out), legit) {
-				return channel, version,
-					fmt.Errorf("gpg key verification failed for %v", t)
-			}
 		}
-		if strings.HasSuffix(t, "cpio.gz") {
+	}()
+	for fn, location := range files {
+		dir := filepath.Dir(location)
+		// OEMify
+		if strings.HasSuffix(fn, "cpio.gz") {
 			oemdir := filepath.Join(dir, "./usr/share/oem/")
 			oembindir := filepath.Join(oemdir, "./bin/")
 			if err = os.MkdirAll(oembindir, 0755); err != nil {
 				return channel, version, err
 			}
-			if err := ioutil.WriteFile(filepath.Join(oemdir,
+			if err = ioutil.WriteFile(filepath.Join(oemdir,
 				"cloud-config.yml"), []byte(CoreOEMsetup), 0644); err != nil {
 				return channel, version, err
 			}
-			if err := ioutil.WriteFile(filepath.Join(oembindir,
+			if err = ioutil.WriteFile(filepath.Join(oembindir,
 				"coreos-setup-environment"),
 				[]byte(CoreOEMsetupEnv), 0755); err != nil {
 				return channel, version, err
@@ -206,20 +167,21 @@ func downloadAndVerify(channel, version string) (a, b string, err error) {
 
 			oem := sh.NewSession()
 			oem.SetDir(dir)
-			if out, err = oem.Command("gzip",
-				"-dc", fn).Command("cpio",
+			if _, err = oem.Command("gzip", "-dc", fn).Command("cpio",
 				"-idv").CombinedOutput(); err != nil {
 				return channel, version, err
 			}
-			if out, err = oem.Command("find",
+			if _, err = oem.Command("find",
 				"usr", "etc", "usr.squashfs").Command("cpio",
-				"-oz", "-H", "newc", "-O", f).CombinedOutput(); err != nil {
+				"-oz", "-H", "newc", "-O", fn).CombinedOutput(); err != nil {
 				return channel, version, err
 			}
 		}
-		if err = os.Rename(f, fmt.Sprintf("%s/%s", dest, fn)); err != nil {
+		if err = os.Rename(location,
+			fmt.Sprintf("%s/%s", destination, fn)); err != nil {
 			return channel, version, err
 		}
 	}
-	return channel, version, normalizeOnDiskPermissions(dest)
+
+	return channel, version, normalizeOnDiskPermissions(destination)
 }
