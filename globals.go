@@ -110,6 +110,7 @@ For example, "--debug" => "COREOS_DEBUG"
 	// GPGKey
 	GPGKey = `-----BEGIN PGP PUBLIC KEY BLOCK-----
 Version: GnuPG v2
+
 mQINBFIqVhQBEADjC7oxg5N9Xqmqqrac70EHITgjEXZfGm7Q50fuQlqDoeNWY+sN
 szpw//dWz8lxvPAqUlTSeR+dl7nwdpG2yJSBY6pXnXFF9sdHoFAUI0uy1Pp6VU9b
 /9uMzZo+BBaIfojwHCa91JcX3FwLly5sPmNAjgiTeYoFmeb7vmV9ZMjoda1B8k4e
@@ -248,8 +249,7 @@ ifyLT1GOMN7PCaHzW449DrSJNd3yL7xkzNtrphw32a9qLJ43sWFrF21EjG1IQgUV
 4XOz01Q2Hp4H1l1YE11MbSL/+TarNTbEfhzv6tS3eNrlU/MQDLsUn76c4hi2tAbK
 X8FjXVJ/8MWi91Z0pHcLzhYZYn2IACvaaUh06HyyAIiDlgWRC7zgMQ==
 =1egC
------END PGP PUBLIC KEY BLOCK-----
-`
+-----END PGP PUBLIC KEY BLOCK-----`
 	//
 	CoreOEMsetupEnv = `#!/bin/bash
 [[ $(</proc/cmdline) =~ uuid=([^\ ]+) ]]; UUID=${BASH_REMATCH[1]}
