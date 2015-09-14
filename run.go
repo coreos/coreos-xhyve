@@ -132,7 +132,7 @@ func bootVM(vipre *viper.Viper) (err error) {
 	if err = vm.storeConfig(); err != nil {
 		return
 	}
-	defer func() {
+	savePid := func() {
 		defer func() { recover() }()
 		for _ = range time.Tick(1 * time.Second) {
 			vm.Pid = c.Process.Pid
@@ -142,9 +142,11 @@ func bootVM(vipre *viper.Viper) (err error) {
 			}
 			break
 		}
-	}()
+	}
+
 	// FIXME save bootlog
 	if !vm.Detached {
+		go savePid()
 		c.Stdout, c.Stdin, c.Stderr = os.Stdout, os.Stdin, os.Stderr
 		if err = c.Run(); err != nil && !strings.HasSuffix(err.Error(),
 			"exit status 2") {
@@ -152,6 +154,7 @@ func bootVM(vipre *viper.Viper) (err error) {
 		}
 		return nil
 	}
+	defer savePid()
 
 	if err = c.Start(); err != nil {
 		return fmt.Errorf("Aborting: unable to start in background. (%v)", err)
