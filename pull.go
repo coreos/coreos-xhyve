@@ -17,6 +17,7 @@ package main
 
 import (
 	"bufio"
+	"bytes"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -24,9 +25,10 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	// XXX
+	"github.com/AntonioMeireles/coreos-xhyve/image"
 
 	"github.com/blang/semver"
-	"github.com/codeskyblue/go-sh"
 	"github.com/spf13/cobra"
 )
 
@@ -142,35 +144,59 @@ func localize(channel, version string) (a string, b string, err error) {
 		}
 	}()
 	for fn, location := range files {
-		dir := filepath.Dir(location)
 		// OEMify
 		if strings.HasSuffix(fn, "cpio.gz") {
-			oemdir := filepath.Join(dir, "./usr/share/oem/")
-			oembindir := filepath.Join(oemdir, "./bin/")
-			if err = os.MkdirAll(oembindir, 0755); err != nil {
-				return channel, version, err
+			var (
+				i, temp *os.File
+				r       *image.Reader
+				w       *image.Writer
+			)
+
+			if i, err = os.Open(location); err != nil {
+				return
 			}
-			if err = ioutil.WriteFile(filepath.Join(oemdir,
-				"cloud-config.yml"), []byte(CoreOEMsetup), 0644); err != nil {
-				return channel, version, err
+			defer i.Close()
+
+			if r, err = image.NewReader(i); err != nil {
+				return
 			}
-			if err = ioutil.WriteFile(filepath.Join(oembindir,
-				"coreos-setup-environment"),
-				[]byte(CoreOEMsetupEnv), 0755); err != nil {
-				return channel, version, err
+			defer r.Close()
+
+			if temp, err = ioutil.TempFile("", "coreos"); err != nil {
+				return
+			}
+			defer temp.Close()
+
+			if w, err = image.NewWriter(temp); err != nil {
+				return
 			}
 
-			oem := sh.NewSession()
-			oem.SetDir(dir)
-			if _, err = oem.Command("gzip", "-dc", fn).Command("cpio",
-				"-idv").CombinedOutput(); err != nil {
-				return channel, version, err
+			for _, d := range []string{"usr", "usr/share", "usr/share/oem",
+				"usr/share/oem/bin"} {
+				if err = w.WriteDir(d, 0755); err != nil {
+					return
+				}
 			}
-			if _, err = oem.Command("find",
-				"usr", "etc", "usr.squashfs").Command("cpio",
-				"-oz", "-H", "newc", "-O", fn).CombinedOutput(); err != nil {
-				return channel, version, err
+
+			if err = w.WriteToFile(bytes.NewBufferString(CoreOEMsetup),
+				"usr/share/oem/cloud-config.yml", 0644); err != nil {
+				return
 			}
+
+			if err = w.WriteToFile(bytes.NewBufferString(CoreOEMsetupEnv),
+				"usr/share/oem/bin/coreos-setup-environment",
+				0755); err != nil {
+				return
+			}
+			defer w.Close()
+
+			if err = image.Copy(w, r); err != nil {
+				return
+			}
+			if err = os.Rename(temp.Name(), location); err != nil {
+				return
+			}
+
 		}
 		if err = os.Rename(location,
 			fmt.Sprintf("%s/%s", destination, fn)); err != nil {

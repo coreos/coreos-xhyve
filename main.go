@@ -13,6 +13,8 @@
 // limitations under the License.
 //
 
+//coreos-xhyve is the simplest, and smoothest, way to test CoreOS under OSX and
+//xhyve
 package main
 
 import (
