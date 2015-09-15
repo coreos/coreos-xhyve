@@ -13,6 +13,7 @@
 // limitations under the License.
 //
 
+// Package uuid2ip is a simple interface to interact with xhyve's networking
 package uuid2ip
 
 /*
@@ -32,7 +33,8 @@ import (
 	"unsafe"
 )
 
-// GuestMAC returns the MAC address that xhyve assembles from the given UUID
+// GuestMACfromUUID returns the MAC address that will assembled from the given
+// UUID by xhyve,  needs to be called before xhyve actual invocation
 func GuestMACfromUUID(uuid string) (mac string, err error) {
 	fail, uuidC := "", C.CString(uuid)
 	macC, failC := C.CString(mac), C.CString(fail)
@@ -55,7 +57,8 @@ func GuestMACfromUUID(uuid string) (mac string, err error) {
 	return C.GoString(macC), nil
 }
 
-// GuestIP returns the IP address that would be leased to the given MAC address
+// GuestIPfromMAC returns the IP address that would be leased to the given MAC
+// address by xhyve, to be called after actual xhyve invocation
 func GuestIPfromMAC(mac string) (ip string, err error) {
 	var (
 		f          *os.File

@@ -65,8 +65,14 @@ func killCommand(cmd *cobra.Command, args []string) (err error) {
 	return
 }
 
-func (vm *VMInfo) halt() (err error) {
-	if _, e := vm.sshRunCommand([]string{"sudo sync;id"}); e != nil {
+func (vm VMInfo) halt() (err error) {
+	var sshSession *sshClient
+
+	if sshSession, err = vm.startSSHsession(); err != nil {
+		return
+	}
+	defer sshSession.close()
+	if e := sshSession.executeRemoteCommand("sudo sync;sudo halt"); e != nil {
 		// ssh messed up for some reason or target has no IP
 		log.Printf("couldn't ssh to %v (%v)...\n", vm.Name, e)
 		if p, ee := os.FindProcess(vm.Pid); ee == nil {
@@ -75,12 +81,8 @@ func (vm *VMInfo) halt() (err error) {
 				return
 			}
 		}
-		log.Printf("successfully halted %s\n", vm.Name)
-		return nil
 	}
-	if _, err = vm.sshRunCommand([]string{"sudo halt"}); err == nil {
-		log.Printf("sucessefully halted %s\n", vm.Name)
-	}
+	log.Printf("successfully halted '%s'\n", vm.Name)
 	return
 }
 

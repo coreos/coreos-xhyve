@@ -136,8 +136,9 @@ func bootVM(vipre *viper.Viper) (err error) {
 	if mac, err = uuid2ip.GuestMACfromUUID(vm.UUID); err != nil {
 		return
 	}
+
 	done := make(chan bool)
-	savePidAndIP := func() {
+	go func() {
 		defer func() {
 			if r := recover(); r == nil {
 				done <- true
@@ -158,9 +159,7 @@ func bootVM(vipre *viper.Viper) (err error) {
 			}
 		}
 		vm.storeConfig()
-	}
-
-	go savePidAndIP()
+	}()
 	defer func() {
 		<-done
 		if err != nil {
