@@ -30,7 +30,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"os/exec"
 	"os/user"
 	"path/filepath"
 	"regexp"
@@ -273,83 +272,6 @@ func (session *sessionInfo) allowedToRun() (err error) {
 			" use 'sudo'")
 	}
 	return
-}
-
-func (vm *VMInfo) sshPre() (instr []string, tmpDir string, err error) {
-	var secretF string
-
-	if len(vm.PublicIP) == 0 {
-		return instr, tmpDir,
-			fmt.Errorf("oops, no IP address found for %v", vm.Name)
-	}
-
-	if SessionContext.debug {
-		fmt.Println("attaching to", vm.Name, vm.PublicIP)
-	}
-
-	if tmpDir, err = ioutil.TempDir("", "ssh"); err != nil {
-		return
-	}
-	secretF = filepath.Join(tmpDir, "secret")
-
-	if err = ioutil.WriteFile(secretF,
-		[]byte(vm.InternalSSHprivKey), 0600); err != nil {
-		return
-	}
-
-	instr = []string{fmt.Sprintf("core@%s", vm.PublicIP),
-		"-i", secretF, "-o", "StrictHostKeyChecking=no",
-		"-o", "UserKnownHostsFile=/dev/null",
-	}
-
-	return
-}
-func (vm *VMInfo) sshShell() (err error) {
-	var instr []string
-	var tmpDir string
-
-	if instr, tmpDir, err = vm.sshPre(); err != nil {
-		return
-	}
-
-	defer func() {
-		if e := os.RemoveAll(tmpDir); e != nil {
-			log.Println(e)
-		}
-	}()
-
-	c := exec.Command("ssh", instr...)
-	c.Stdout, c.Stdin, c.Stderr = os.Stdout, os.Stdin, os.Stderr
-
-	if err = c.Run(); err != nil &&
-		!strings.Contains(err.Error(), "exit status 255") {
-		return err
-	}
-	return nil
-}
-
-func (vm *VMInfo) sshRunCommand(args []string) (out string, err error) {
-	var instr []string
-	var tmpDir string
-	var o []byte
-
-	if instr, tmpDir, err = vm.sshPre(); err != nil {
-		return
-	}
-
-	defer func() {
-		if e := os.RemoveAll(tmpDir); e != nil {
-			log.Println(e)
-		}
-	}()
-
-	instr = append(instr, args...)
-
-	if o, err = exec.Command("ssh", instr...).CombinedOutput(); err != nil &&
-		!strings.Contains(err.Error(), "exit status 255") {
-		return string(o), err
-	}
-	return string(o), nil
 }
 
 func normalizeChannelName(channel string) string {
