@@ -49,7 +49,7 @@ type (
 	NetworkInterface struct {
 		Type int
 		// if tap
-		Path string
+		Path string `json:",omitempty"`
 	}
 	// StorageDevice ...
 	StorageDevice struct {
@@ -300,8 +300,8 @@ coreos:
       content: |
         [Unit]
           Description=Load cloud-config from file
-          Requires=xhyve.service
-          After=xhyve.service Users.mount
+          Requires=Users.mount
+          After=Users.mount
           ConditionPathExists=/etc/environment
         [Service]
           Type=oneshot
@@ -310,18 +310,5 @@ coreos:
           ExecStart=/bin/bash -c "[[ -f $STATUSDIR/cloud-config.local ]] && \
                         /usr/bin/coreos-cloudinit \
                             -from-file $STATUSDIR/cloud-config.local || true"
-    - name: xhyve.service
-      command: start
-      content: |
-        [Unit]
-          Description=updates xhyve context
-          Requires=coreos-setup-environment.service Users.mount
-          After=coreos-setup-environment.service Users.mount
-          ConditionPathExists=/etc/environment
-        [Service]
-          Type=oneshot
-          RemainAfterExit=true
-          EnvironmentFile=/etc/environment
-          ExecStart=/bin/bash -c "echo ${COREOS_PUBLIC_IPV4} > ${STATUSDIR}/ip"
 `
 )

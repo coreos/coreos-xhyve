@@ -23,7 +23,6 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -89,12 +88,7 @@ func (vm *VMInfo) pp(extended bool) {
 		fmt.Printf("  - cloud-config: %v\n", vm.CloudConfig)
 	}
 	fmt.Println("  - Network Interfaces:")
-	ip := "coundn't get ip"
-	if buf, _ := ioutil.ReadFile(
-		filepath.Join(SessionContext.runDir, vm.UUID, "/ip")); buf != nil {
-		ip = strings.TrimSpace(string(buf))
-	}
-	fmt.Printf("    - eth0 (public interface) %v\n", ip)
+	fmt.Printf("    - eth0 (public interface) %v\n", vm.PublicIP)
 	if len(vm.Ethernet) > 1 {
 		fmt.Printf("    - eth1 (private interface/%v on host)\n", vm.Ethernet[1].Path)
 	}
@@ -136,14 +130,10 @@ func runningConfig(uuid string) (vm VMInfo, err error) {
 		return
 	}
 	json.Unmarshal(buf, &vm)
-	if vm.isActive() {
-		if buf, e := ioutil.ReadFile(filepath.Join(SessionContext.runDir,
-			vm.UUID, "/ip")); e == nil && buf != nil {
-			vm.PublicIP = strings.TrimSpace(string(buf))
-		}
-		return
+	if !vm.isActive() {
+		return vm, fmt.Errorf("dead")
 	}
-	return vm, fmt.Errorf("dead")
+	return
 }
 
 func init() {
