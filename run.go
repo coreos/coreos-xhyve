@@ -29,6 +29,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/AntonioMeireles/coreos-xhyve/uuid2ip"
 	"github.com/satori/go.uuid"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -131,21 +132,47 @@ func bootVM(vipre *viper.Viper) (err error) {
 	if err = vm.storeConfig(); err != nil {
 		return
 	}
-	savePid := func() {
-		defer func() { recover() }()
-		for _ = range time.Tick(1 * time.Second) {
-			vm.Pid = c.Process.Pid
-			vm.storeConfig()
-			if vm.Detached && err == nil {
-				log.Println("started VM in background with PID", c.Process.Pid)
+	var mac string
+	if mac, err = uuid2ip.GuestMACfromUUID(vm.UUID); err != nil {
+		return
+	}
+	done := make(chan bool)
+	savePidAndIP := func() {
+		defer func() {
+			if r := recover(); r == nil {
+				done <- true
 			}
+		}()
+		if err != nil {
+			return
+		}
+		for _ = range time.Tick(500 * time.Millisecond) {
+			vm.Pid = c.Process.Pid
 			break
 		}
+
+		for _ = range time.Tick(100 * time.Millisecond) {
+			var e error
+			if vm.PublicIP, e = uuid2ip.GuestIPfromMAC(mac); e == nil {
+				break
+			}
+		}
+		vm.storeConfig()
 	}
 
+	go savePidAndIP()
+	defer func() {
+		<-done
+		if err != nil {
+			return
+		}
+		if vm.Detached && err == nil {
+			log.Println("started VM in background with IP", vm.PublicIP,
+				"and PID", c.Process.Pid)
+		}
+	}()
 	// FIXME save bootlog
 	if !vm.Detached {
-		go savePid()
 		c.Stdout, c.Stdin, c.Stderr = os.Stdout, os.Stdin, os.Stderr
 		if err = c.Run(); err != nil && !strings.HasSuffix(err.Error(),
 			"exit status 2") {
@@ -153,11 +180,11 @@ func bootVM(vipre *viper.Viper) (err error) {
 		}
 		return nil
 	}
-	defer savePid()
 
 	if err = c.Start(); err != nil {
 		return fmt.Errorf("Aborting: unable to start in background. (%v)", err)
 	}
+
 	// usersDir.unshare()
 	return
 }
