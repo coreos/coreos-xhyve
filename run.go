@@ -29,6 +29,8 @@ import (
 	"strings"
 	"time"
 
+	"golang.org/x/crypto/ssh/terminal"
+
 	"github.com/AntonioMeireles/coreos-xhyve/uuid2ip"
 	"github.com/satori/go.uuid"
 	"github.com/spf13/cobra"
@@ -172,6 +174,13 @@ func bootVM(vipre *viper.Viper) (err error) {
 	}()
 	// FIXME save bootlog
 	if !vm.Detached {
+		var oldState *terminal.State
+		fd := int(os.Stdin.Fd())
+		if oldState, err = terminal.MakeRaw(fd); err != nil {
+			return
+		}
+		defer terminal.Restore(fd, oldState)
+
 		c.Stdout, c.Stdin, c.Stderr = os.Stdout, os.Stdin, os.Stderr
 		if err = c.Run(); err != nil && !strings.HasSuffix(err.Error(),
 			"exit status 2") {
