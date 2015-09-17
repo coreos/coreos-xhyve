@@ -106,6 +106,11 @@ type Command struct {
 	helpCommand   *Command                 // The help command
 	// The global normalization function that we can use on every pFlag set and children commands
 	globNormFunc func(f *flag.FlagSet, name string) flag.NormalizedName
+
+	// Disable the suggestions based on Levenshtein distance that go along with 'unknown command' messages
+	DisableSuggestions bool
+	// If displaying suggestions, allows to set the minimum levenshtein distance to display, must be > 0
+	SuggestionsMinimumDistance int
 }
 
 // os.Args[1:] by default, if desired, can be overridden
@@ -186,6 +191,9 @@ func (c *Command) UsageFunc() (f func(*Command) error) {
 	} else {
 		return func(c *Command) error {
 			err := tmpl(c.Out(), c.UsageTemplate(), c)
+			if err != nil {
+				fmt.Print(err)
+			}
 			return err
 		}
 	}
@@ -248,8 +256,7 @@ func (c *Command) UsageTemplate() string {
 	if c.HasParent() {
 		return c.parent.UsageTemplate()
 	} else {
-		return `{{ $cmd := . }}
-Usage: {{if .Runnable}}
+		return `Usage:{{if .Runnable}}
   {{.UseLine}}{{if .HasFlags}} [flags]{{end}}{{end}}{{if .HasSubCommands}}
   {{ .CommandPath}} [command]{{end}}{{if gt .Aliases 0}}
 
@@ -260,20 +267,20 @@ Aliases:
 Examples:
 {{ .Example }}{{end}}{{ if .HasAvailableSubCommands}}
 
-Available Commands: {{range .Commands}}{{if .IsAvailableCommand}}
+Available Commands:{{range .Commands}}{{if .IsAvailableCommand}}
   {{rpad .Name .NamePadding }} {{.Short}}{{end}}{{end}}{{end}}{{ if .HasLocalFlags}}
 
 Flags:
-{{.LocalFlags.FlagUsages}}{{end}}{{ if .HasInheritedFlags}}
+{{.LocalFlags.FlagUsages | trimRightSpace}}{{end}}{{ if .HasInheritedFlags}}
 
 Global Flags:
-{{.InheritedFlags.FlagUsages}}{{end}}{{if .HasHelpSubCommands}}
+{{.InheritedFlags.FlagUsages | trimRightSpace}}{{end}}{{if .HasHelpSubCommands}}
 
-Additional help topics: {{range .Commands}}{{if .IsHelpCommand}}
+Additional help topics:{{range .Commands}}{{if .IsHelpCommand}}
   {{rpad .CommandPath .CommandPathPadding}} {{.Short}}{{end}}{{end}}{{end}}{{ if .HasSubCommands }}
 
-Use "{{.CommandPath}} [command] --help" for more information about a command.
-{{end}}`
+Use "{{.CommandPath}} [command] --help" for more information about a command.{{end}}
+`
 	}
 }
 
@@ -285,9 +292,9 @@ func (c *Command) HelpTemplate() string {
 	if c.HasParent() {
 		return c.parent.HelpTemplate()
 	} else {
-		return `{{with or .Long .Short }}{{. | trim}}{{end}}
-{{if or .Runnable .HasSubCommands}}{{.UsageString}}{{end}}
-`
+		return `{{with or .Long .Short }}{{. | trim}}
+
+{{end}}{{if or .Runnable .HasSubCommands}}{{.UsageString}}{{end}}`
 	}
 }
 
@@ -419,9 +426,31 @@ func (c *Command) Find(args []string) (*Command, []string, error) {
 	if !commandFound.HasSubCommands() {
 		return commandFound, a, nil
 	}
+
 	// root command with subcommands, do subcommand checking
 	if commandFound == c && len(argsWOflags) > 0 {
-		return commandFound, a, fmt.Errorf("unknown command %q for %q", argsWOflags[0], commandFound.CommandPath())
+		suggestions := ""
+		if !c.DisableSuggestions {
+			if c.SuggestionsMinimumDistance <= 0 {
+				c.SuggestionsMinimumDistance = 2
+			}
+			similar := []string{}
+			for _, cmd := range c.commands {
+				if cmd.IsAvailableCommand() {
+					levenshtein := ld(argsWOflags[0], cmd.Name(), true)
+					if levenshtein <= c.SuggestionsMinimumDistance {
+						similar = append(similar, cmd.Name())
+					}
+				}
+			}
+			if len(similar) > 0 {
+				suggestions += "\n\nDid you mean this?\n"
+				for _, s := range similar {
+					suggestions += fmt.Sprintf("\t%v\n", s)
+				}
+			}
+		}
+		return commandFound, a, fmt.Errorf("unknown command %q for %q%s", argsWOflags[0], commandFound.CommandPath(), suggestions)
 	}
 
 	return commandFound, a, nil
@@ -856,6 +885,10 @@ func (c *Command) HasSubCommands() bool {
 // (this includes all non deprecated/hidden commands)
 func (c *Command) IsAvailableCommand() bool {
 	if len(c.Deprecated) != 0 || c.Hidden {
+		return false
+	}
+
+	if c.HasParent() && c.Parent().helpCommand == c {
 		return false
 	}
 

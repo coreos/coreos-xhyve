@@ -47,7 +47,7 @@ var (
 
 func main() {
 	if err := RootCmd.Execute(); err != nil {
-		log.Fatalln(err)
+		// do nothing until we spot a smooth way to avoid dup messages w/ cobra
 	}
 }
 func init() {
