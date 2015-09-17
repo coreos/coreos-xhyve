@@ -9,7 +9,7 @@
  > - if you use **any** version of VirtualBox prior to VirtualBox 4.3.30 then
  >   `xhyve` will crash your system either if VirtualBox is running, or had been
  >   run previously after the last reboot (see `xhyve`'s issues
- >   [#5](https://github.com/mist64/xhyve/issues/5) and 
+ >   [#5](https://github.com/mist64/xhyve/issues/5) and
  >   [#9](https://github.com/mist64/xhyve/issues/9) for the full context). So,
  >   if you are unable to update VirtualBox to the latest, either of the 4.x or
  >   5.x streams, and were using it in your current session please do restart
