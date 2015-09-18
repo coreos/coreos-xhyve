@@ -2,31 +2,34 @@ VERSION := $(shell git describe --abbrev=6 --dirty --always --tags)
 V := "blablabla.go"
 
 all: coreos docs
-	git status
+	@git status
 
 coreos: clean Makefile
-	echo "package main" > $(V)
-	echo "var Version = \"$(VERSION)\"" >> $(V)
-	@rm -rf ./Godeps ./documentation/*
-	@mkdir -p ./documentation/{man,markdown}
-	@touch ./documentation/man/coreos.1
-	@touch ./documentation/markdown/coreos.md
+	@echo "package main" > $(V)
+	@echo "var Version = \"$(VERSION)\"" >> $(V)
+	@mkdir -p ./documentation/
 	godep save ./...
 	godep go build -o coreos
-	./coreos utils mkMan
-	./coreos utils mkMkdown
 	@touch $@
 
 clean:
-	@rm -f coreos
+	@rm -rf coreos ./Godeps ./documentation/
 
-docs: coreos man markdown
+docs: coreos documentation/markdown documentation/man
 
-man: documentation/man/*.1
-	@for p in $?; do sed -i "s/$$(/bin/date '+%h %Y')//" "$$p" ;done
-	@for p in $?; do sed -i '/spf13\/cobra$$/d' "$$p" ;done
+documentation/man: force
+	@mkdir  documentation/man
+	@./coreos utils mkMan
+	@for p in $$(ls documentation/man/*.1); do \
+		sed -i "s/$$(/bin/date '+%h %Y')//" "$$p" ;\
+		sed -i '/spf13\/cobra$$/d' "$$p" ;\
+	done
 
-markdown: documentation/markdown/*.md
-	@for p in $?; do sed -i '/spf13\/cobra/d' "$$p" ;done
+documentation/markdown: force
+		@mkdir  documentation/markdown
+		@./coreos utils mkMkdown
+		@for p in $$(ls documentation/markdown/*.md); do \
+			sed -i '/spf13\/cobra/d' "$$p" ;\
+		done
 
-.PHONY: clean all docs man markdown
+.PHONY: clean all docs force
