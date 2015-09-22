@@ -68,6 +68,7 @@ var (
 	vipre           *viper.Viper
 	// SessionContext ...
 	SessionContext sessionInfo
+	wg             sync.WaitGroup
 )
 
 const (

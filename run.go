@@ -139,11 +139,11 @@ func bootVM(vipre *viper.Viper) (err error) {
 		return
 	}
 
-	done := make(chan bool)
 	go func() {
+		wg.Add(1)
 		defer func() {
 			if r := recover(); r == nil {
-				done <- true
+				wg.Done()
 			}
 		}()
 		if err != nil {
@@ -163,7 +163,6 @@ func bootVM(vipre *viper.Viper) (err error) {
 		vm.storeConfig()
 	}()
 	defer func() {
-		<-done
 		if err != nil {
 			return
 		}
@@ -192,7 +191,7 @@ func bootVM(vipre *viper.Viper) (err error) {
 	if err = c.Start(); err != nil {
 		return fmt.Errorf("Aborting: unable to start in background. (%v)", err)
 	}
-
+	wg.Wait()
 	// usersDir.unshare()
 	return
 }
