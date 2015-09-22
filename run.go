@@ -168,8 +168,8 @@ func bootVM(vipre *viper.Viper) (err error) {
 			return
 		}
 		if vm.Detached && err == nil {
-			log.Println("started VM in background with IP", vm.PublicIP,
-				"and PID", c.Process.Pid)
+			log.Printf("started '%s' in background with IP %v and PID %v\n",
+				vm.Name, vm.PublicIP, c.Process.Pid)
 		}
 	}()
 	// FIXME save bootlog
@@ -201,7 +201,7 @@ func runFlagsDefaults(setFlag *pflag.FlagSet) {
 	setFlag.String("channel", "alpha", "CoreOS channel")
 	setFlag.String("version", "latest", "CoreOS version")
 	setFlag.String("uuid", "random", "VM's UUID")
-	setFlag.Int("memory", 1024, "VM's RAM")
+	setFlag.Int("memory", 1024, "VM's RAM (up to 3072/instance)")
 	setFlag.Int("cpus", 1, "VM's vCPUS")
 	setFlag.String("cloud_config", "",
 		"cloud-config file location (either URL or local path)")
@@ -392,7 +392,7 @@ func (vm *VMInfo) validateNameAndUUID(name, xxid string) (err error) {
 		vm.UUID = uuid.NewV4().String()
 	} else {
 		if _, err := uuid.FromString(xxid); err != nil {
-			log.Printf("%s not a valid UUID as it doesn't follow RFC 4122. %s",
+			log.Printf("%s not a valid UUID as it doesn't follow RFC 4122. %s\n",
 				xxid, "    using a randomly generated one")
 			vm.UUID = uuid.NewV4().String()
 		} else {
@@ -409,11 +409,11 @@ func (vm *VMInfo) validateNameAndUUID(name, xxid string) (err error) {
 
 func (vm *VMInfo) validateRAM(ram int) {
 	if ram < 1024 {
-		fmt.Printf(" '%v' not a reasonable memory value. %s", ram,
+		log.Printf("'%v' not a reasonable memory value. %s\n", ram,
 			"Using '1024', the default")
 		ram = 1024
 	} else if ram > 3072 {
-		fmt.Printf(" '%v' not a reasonable memory value. %s %s", ram,
+		log.Printf("'%v' not a reasonable memory value. %s %s\n", ram,
 			"as presently xhyve only supports VMs with up to 3GB of RAM.",
 			"setting it to '3072'")
 		ram = 3072
