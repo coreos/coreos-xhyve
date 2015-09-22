@@ -120,6 +120,12 @@ func downloadAndVerify(channel,
 			return
 		}
 		defer digest.Body.Close()
+		switch digest.StatusCode {
+		case http.StatusOK, http.StatusNoContent:
+		default:
+			return l, fmt.Errorf("failed fetching %s: HTTP status: %s",
+				signature, digest.Status)
+		}
 		if digestRaw, err = ioutil.ReadAll(digest.Body); err != nil {
 			return
 		}
@@ -173,7 +179,12 @@ func downloadAndVerify(channel,
 			return
 		}
 		defer r.Body.Close()
-
+		switch r.StatusCode {
+		case http.StatusOK, http.StatusNoContent:
+		default:
+			return l, fmt.Errorf("failed fetching %s: HTTP status: %s",
+				signature, r.Status)
+		}
 		bar := pb.New(int(r.ContentLength)).SetUnits(pb.U_BYTES)
 		bar.Start()
 

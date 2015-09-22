@@ -431,7 +431,8 @@ func (vm *VMInfo) validateCloudConfig(config string) (err error) {
 		response.Body.Close()
 	}
 	vm.CloudConfig = config
-	if err == nil && response.StatusCode == 200 {
+	if err == nil && (response.StatusCode == http.StatusOK ||
+		response.StatusCode == http.StatusNoContent) {
 		vm.CClocation = Remote
 		return
 	}

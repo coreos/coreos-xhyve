@@ -69,6 +69,12 @@ func findLatestUpstream(channel string) (releaseInfo map[string]string, err erro
 	}
 
 	defer response.Body.Close()
+	switch response.StatusCode {
+	case http.StatusOK, http.StatusNoContent:
+	default:
+		return releaseInfo, fmt.Errorf("failed fetching %s: HTTP status: %s",
+			upstream, response.Status)
+	}
 
 	s = bufio.NewScanner(response.Body)
 	s.Split(bufio.ScanLines)
