@@ -28,6 +28,7 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
+	"net"
 	"net/http"
 	"os"
 	"os/user"
@@ -35,6 +36,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"sync"
 
 	"github.com/blang/semver"
 	"github.com/mitchellh/go-ps"
@@ -330,4 +332,82 @@ func (vm *VMInfo) isActive() bool {
 		return false
 	}
 	return true
+}
+
+func (vm *VMInfo) metadataService() (endpoint string, err error) {
+	var (
+		free    net.Listener
+		runOnce sync.Once
+	)
+
+	if free, err = net.Listen("tcp", "localhost:0"); err != nil {
+		return
+	}
+
+	mux := http.NewServeMux()
+	root := "/" + vm.Name
+
+	wg.Add(1)
+
+	if vm.CloudConfig != "" && vm.CClocation == Local {
+		var runOnceII sync.Once
+		var txt []byte
+		if txt, err = ioutil.ReadFile(vm.CloudConfig); err != nil {
+			return
+		}
+		wg.Add(1)
+		ccHandler := func(w http.ResponseWriter, r *http.Request) {
+			origin := r.RemoteAddr
+			if strings.HasPrefix(origin, "192.168.64.") {
+				w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+				w.WriteHeader(http.StatusOK)
+				w.Write(txt)
+				runOnceII.Do(func() { wg.Done() })
+				return
+			}
+			w.WriteHeader(http.StatusPreconditionFailed)
+			w.Write(nil)
+		}
+		mux.HandleFunc(filepath.Join(root, "/", "cloud-config"), ccHandler)
+	}
+	commHandler := func(w http.ResponseWriter, r *http.Request) {
+		origin := r.RemoteAddr
+		if strings.HasPrefix(origin, "192.168.64.") {
+			w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+			w.WriteHeader(http.StatusOK)
+			w.Write([]byte(vm.InternalSSHauthKey))
+			runOnce.Do(func() { wg.Done() })
+			return
+		}
+		w.WriteHeader(http.StatusPreconditionFailed)
+		w.Write(nil)
+	}
+	hstHandler := func(w http.ResponseWriter, r *http.Request) {
+		origin := r.RemoteAddr
+		if strings.HasPrefix(origin, "192.168.64.") {
+			w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+			w.WriteHeader(http.StatusOK)
+			w.Write([]byte(vm.Name))
+			return
+		}
+		w.WriteHeader(http.StatusPreconditionFailed)
+		w.Write(nil)
+	}
+
+	mux.HandleFunc(root+"/sshKey", commHandler)
+	mux.HandleFunc(root+"/hostname", hstHandler)
+
+	prt := fmt.Sprintf(":%v", free.Addr().(*net.TCPAddr).Port)
+	endpoint = fmt.Sprintf("http://192.168.64.1%v%v", prt, root)
+
+	srv := &http.Server{
+		Addr:    prt,
+		Handler: mux,
+	}
+	go func() {
+		defer free.Close()
+		srv.ListenAndServe()
+	}()
+
+	return
 }

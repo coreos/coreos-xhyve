@@ -149,12 +149,12 @@ func bootVM(vipre *viper.Viper) (err error) {
 		if err != nil {
 			return
 		}
-		for _ = range time.Tick(500 * time.Millisecond) {
+		for range time.Tick(500 * time.Millisecond) {
 			vm.Pid = c.Process.Pid
 			break
 		}
 
-		for _ = range time.Tick(100 * time.Millisecond) {
+		for range time.Tick(100 * time.Millisecond) {
 			var e error
 			if vm.PublicIP, e = uuid2ip.GuestIPfromMAC(mac); e == nil {
 				break
@@ -297,10 +297,9 @@ func (vm *VMInfo) storeConfig() (err error) {
 
 func (vm *VMInfo) assembleBootPayload() (cmd *exec.Cmd, err error) {
 	var (
-		cmdline = fmt.Sprintf("%s %s %s %s %s %s=\"%s\"",
+		cmdline = fmt.Sprintf("%s %s %s %s ",
 			"earlyprintk=serial", "console=ttyS0", "coreos.autologin",
-			"localuser="+SessionContext.username, "uuid="+vm.UUID,
-			"sshkey_internal", strings.TrimSpace(vm.InternalSSHauthKey))
+			"uuid="+vm.UUID)
 		prefix  = "coreos_production_pxe"
 		vmlinuz = fmt.Sprintf("%s/%s/%s/%s.vmlinuz",
 			SessionContext.imageDir, vm.Channel, vm.Version, prefix)
@@ -315,7 +314,7 @@ func (vm *VMInfo) assembleBootPayload() (cmd *exec.Cmd, err error) {
 			"-c", fmt.Sprintf("%v", vm.Cpus),
 			"-A",
 		}
-		cc []byte
+		endpoint string
 	)
 
 	if vm.SSHkey != "" {
@@ -326,15 +325,15 @@ func (vm *VMInfo) assembleBootPayload() (cmd *exec.Cmd, err error) {
 		cmdline = fmt.Sprintf("%s root=/dev/vd%s", cmdline, string(vm.Root+'a'))
 	}
 
+	if endpoint, err = vm.metadataService(); err != nil {
+		return
+	}
+	cmdline = fmt.Sprintf("%s endpoint=%s", cmdline, endpoint)
+
 	if vm.CloudConfig != "" {
 		if vm.CClocation == Local {
-			cc, err = ioutil.ReadFile(vm.CloudConfig)
-			if err = ioutil.WriteFile(
-				fmt.Sprintf("%s/%s/cloud-config.local",
-					SessionContext.runDir, vm.UUID),
-				cc, 0644); err != nil {
-				return
-			}
+			cmdline = fmt.Sprintf("%s cloud-config-url=%s",
+				cmdline, endpoint+"/cloud-config")
 		} else {
 			cmdline = fmt.Sprintf("%s cloud-config-url=%s",
 				cmdline, vm.CloudConfig)

@@ -184,8 +184,14 @@ func localize(channel, version string) (a string, b string, err error) {
 				}
 			}
 
-			if err = w.WriteToFile(bytes.NewBufferString(CoreOEMsetup),
+			if err = w.WriteToFile(bytes.NewBufferString(CoreOEMsetupBootstrap),
 				"usr/share/oem/cloud-config.yml", 0644); err != nil {
+				return
+			}
+
+			if err = w.WriteToFile(bytes.NewBufferString(
+				strings.Replace(CoreOEMsetup, "@@version@@", version, -1)),
+				"usr/share/oem/xhyve.yml", 0644); err != nil {
 				return
 			}
 

@@ -16,6 +16,7 @@
 package main
 
 import (
+	"sync"
 	"time"
 
 	"github.com/spf13/viper"
@@ -254,62 +255,78 @@ X8FjXVJ/8MWi91Z0pHcLzhYZYn2IACvaaUh06HyyAIiDlgWRC7zgMQ==
 	//
 	CoreOEMsetupEnv = `#!/bin/bash
 [[ $(</proc/cmdline) =~ uuid=([^\ ]+) ]]; UUID=${BASH_REMATCH[1]}
-[[ $(</proc/cmdline) =~ localuser=([^\ ]+) ]]; CALLERID=${BASH_REMATCH[1]}
-STATUSDIR=/Users/${CALLERID}/.coreos/running/${UUID}
+[[ $(</proc/cmdline) =~ endpoint=([^\ ]+) ]]; endpoint=${BASH_REMATCH[1]}
+
 # wait for eth0 to get up...
-while [ 1 ]; do
-  COREOS_PUBLIC_IPV4=$(/bin/ifconfig eth0 | awk '/inet /{print $2}')
-  if [ -n "${COREOS_PUBLIC_IPV4}" ]; then
-     break
-  fi
-  sleep 1; done
+get_ipv4() {
+    IFACE="${1}"
+    local ip
+    while [ -z "${ip}" ]; do
+        ip=$(ip -4 -o addr show dev "${IFACE}" scope global | \
+            gawk '{split ($4, out, "/"); print out[1]}')
+        sleep .1
+    done
+    echo "${ip}"
+}
+
+COREOS_PUBLIC_IPV4=$(get_ipv4 eth0)
+# XXX if/when i get tap right
 COREOS_PRIVATE_IPV4=${COREOS_PUBLIC_IPV4}
-( echo UUID=${UUID};
-  echo CALLERID=${CALLERID};
-  echo STATUSDIR=${STATUSDIR};
-  echo COREOS_PUBLIC_IPV4=${COREOS_PUBLIC_IPV4};
-  echo COREOS_PRIVATE_IPV4=${COREOS_PRIVATE_IPV4};
+
+block-until-url "${endpoint}"
+
+HOSTNAME="$(curl -Ls ${endpoint}/hostname)"
+
+( echo endpoint=${endpoint}
+  echo UUID=${UUID}
+  echo HOSTNAME="${HOSTNAME}"
+
+  echo COREOS_PUBLIC_IPV4=${COREOS_PUBLIC_IPV4}
+  echo COREOS_PRIVATE_IPV4=${COREOS_PRIVATE_IPV4}
 ) > /etc/environment
-[[ $(</proc/cmdline) =~ sshkey_internal=\"([^\"]+)\" ]]
-echo "${BASH_REMATCH[1]}" | update-ssh-keys -a proc-cmdline-ssh_internal
+
+sed -i "s,@@hostname@@,${HOSTNAME},g" /usr/share/oem/xhyve.yml
+
+echo "$(curl -Ls ${endpoint}/sshKey)" | update-ssh-keys -a proc-cmdline-ssh_internal
 
 `
 	//
-	CoreOEMsetup = `#cloud-config
+	CoreOEMsetupBootstrap = `#cloud-config
 
-write-files:
-  - path: /etc/conf.d/nfs
-    permissions: '0644'
-    content: |
-      OPTS_RPC_MOUNTD=""
 coreos:
   units:
-    - name: rpc-statd.service
-      command: start
-      enable: true
-    - name: Users.mount
-      command: start
-      content: |
-        [Mount]
-          What=192.168.64.1:/Users
-          Where=/Users
-          Options=rw,async,nolock,noatime,rsize=32768,wsize=32768
-          Type=nfs
-    - name: local-cloud-config.service
-      command: start
-      enable: true
-      content: |
-        [Unit]
-          Description=Load cloud-config from file
-          Requires=Users.mount
-          After=Users.mount
-          ConditionPathExists=/etc/environment
-        [Service]
-          Type=oneshot
-          RemainAfterExit=yes
-          EnvironmentFile=/etc/environment
-          ExecStart=/bin/bash -c "[[ -f $STATUSDIR/cloud-config.local ]] && \
-                        /usr/bin/coreos-cloudinit \
-                            -from-file $STATUSDIR/cloud-config.local || true"
+  - name: xhyve-coreos-cloudinit.service
+    command: restart
+    runtime: yes
+    content: |
+      [Unit]
+      Requires=coreos-setup-environment.service
+      After=coreos-setup-environment.service
+      [Service]
+      Type=oneshot
+      EnvironmentFile=/etc/environment
+      ExecStart=/bin/bash -c "/usr/bin/coreos-cloudinit \
+                         --from-file /usr/share/oem/xhyve.yml"
+`
+	CoreOEMsetup = `#cloud-config
+
+manage_etc_hosts: "localhost"
+hostname: "@@hostname@@"
+coreos:
+  oem:
+    id: "xhyve"
+    version_id: "@@version@@"
+    name: "CoreOS on top of the xhyve hypervisor"
+    home-url: "https://github.com/coreos/coreos-xhyve"
+    bug-report-url: "https://github.com/coreos/coreos-xhyve/issues/"
+  units:
+  - name: Users.mount
+    command: start
+    content: |
+      [Mount]
+        What=192.168.64.1:/Users
+        Where=/Users
+        Options=rw,async,nolock,noatime,rsize=32768,wsize=32768
+        Type=nfs
 `
 )
