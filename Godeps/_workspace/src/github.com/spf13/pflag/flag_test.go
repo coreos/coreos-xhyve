@@ -387,6 +387,9 @@ func TestShorthand(t *testing.T) {
 	} else if f.Args()[1] != notaflag {
 		t.Errorf("expected argument %q got %q", notaflag, f.Args()[1])
 	}
+	if f.ArgsLenAtDash() != 1 {
+		t.Errorf("expected argsLenAtDash %d got %d", f.ArgsLenAtDash(), 1)
+	}
 }
 
 func TestParse(t *testing.T) {
@@ -423,6 +426,9 @@ func TestChangedHelper(t *testing.T) {
 	}
 	if f.Changed("invalid") {
 		t.Errorf("--invalid was changed!")
+	}
+	if f.ArgsLenAtDash() != -1 {
+		t.Errorf("Expected argsLenAtDash: %d but got %d", -1, f.ArgsLenAtDash())
 	}
 }
 
@@ -712,6 +718,9 @@ func TestTermination(t *testing.T) {
 	}
 	if f.Args()[1] != arg2 {
 		t.Errorf("expected argument %q got %q", arg2, f.Args()[1])
+	}
+	if f.ArgsLenAtDash() != 0 {
+		t.Errorf("expected argsLenAtDash %d got %d", 0, f.ArgsLenAtDash())
 	}
 }
 
