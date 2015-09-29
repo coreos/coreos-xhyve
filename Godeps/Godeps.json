@@ -61,7 +61,7 @@
 		},
 		{
 			"ImportPath": "github.com/russross/blackfriday",
-			"Comment": "v1.2-80-g8cec3a8",
+			"Comment": "v1.3",
 			"Rev": "8cec3a854e68dba10faabbe31c089abf4a3e57a6"
 		},
 		{
@@ -86,7 +86,7 @@
 		},
 		{
 			"ImportPath": "github.com/spf13/pflag",
-			"Rev": "5a13a75b13d132dc7d07dd19fd260257cd9c0290"
+			"Rev": "b084184666e02084b8ccb9b704bf0d79c466eb1d"
 		},
 		{
 			"ImportPath": "github.com/spf13/viper",
@@ -94,23 +94,23 @@
 		},
 		{
 			"ImportPath": "golang.org/x/crypto/cast5",
-			"Rev": "aedad9a179ec1ea11b7064c57cbc6dc30d7724ec"
+			"Rev": "59a4410d829a8bb774b02b56d4aeab633414f233"
 		},
 		{
 			"ImportPath": "golang.org/x/crypto/curve25519",
-			"Rev": "aedad9a179ec1ea11b7064c57cbc6dc30d7724ec"
+			"Rev": "59a4410d829a8bb774b02b56d4aeab633414f233"
 		},
 		{
 			"ImportPath": "golang.org/x/crypto/openpgp",
-			"Rev": "aedad9a179ec1ea11b7064c57cbc6dc30d7724ec"
+			"Rev": "59a4410d829a8bb774b02b56d4aeab633414f233"
 		},
 		{
 			"ImportPath": "golang.org/x/crypto/ssh",
-			"Rev": "aedad9a179ec1ea11b7064c57cbc6dc30d7724ec"
+			"Rev": "59a4410d829a8bb774b02b56d4aeab633414f233"
 		},
 		{
 			"ImportPath": "gopkg.in/yaml.v2",
-			"Rev": "7ad95dd0798a40da1ccdff6dff35fd177b5edf40"
+			"Rev": "53feefa2559fb8dfa8d81baad31be332c97d6c77"
 		}
 	]
 }
