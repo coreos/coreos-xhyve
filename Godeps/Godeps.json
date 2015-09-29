@@ -26,6 +26,10 @@
 			"Rev": "a2b219a95688efad5e1ad8b6e33b9656df5ae7f4"
 		},
 		{
+			"ImportPath": "github.com/hooklift/xhyve",
+			"Rev": "24bc9b5fe7cc4ae84ce5ad5cd0e677efd4cf4133"
+		},
+		{
 			"ImportPath": "github.com/inconshreveable/mousetrap",
 			"Rev": "76626ae9c91c4f2a10f34cad8ce83ea42c93bb75"
 		},

@@ -17,6 +17,7 @@ package main
 
 import (
 	"bytes"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -29,13 +30,13 @@ import (
 	"strings"
 	"time"
 
-	"golang.org/x/crypto/ssh/terminal"
-
 	"github.com/AntonioMeireles/coreos-xhyve/uuid2ip"
+	"github.com/hooklift/xhyve"
 	"github.com/satori/go.uuid"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
+	"golang.org/x/crypto/ssh/terminal"
 )
 
 var (
@@ -54,10 +55,36 @@ var (
 		},
 		RunE: runCommand,
 	}
+	xhyveCmd = &cobra.Command{
+		Use:    "xhyve",
+		Hidden: true,
+		PreRunE: func(cmd *cobra.Command, args []string) error {
+			if len(args) != 3 {
+				return fmt.Errorf("Incorrect usage. " +
+					"This command accepts exactly 3 arguments.")
+			}
+			return nil
+		},
+		RunE: xhyveCommand,
+	}
 )
 
 func runCommand(cmd *cobra.Command, args []string) error {
 	return bootVM(vipre)
+}
+func xhyveCommand(cmd *cobra.Command, args []string) (err error) {
+	var d0, d1, d2 []byte
+	if d0, err = base64.StdEncoding.DecodeString(args[0]); err != nil {
+		return err
+	}
+	if d1, err = base64.StdEncoding.DecodeString(args[1]); err != nil {
+		return err
+	}
+	if d2, err = base64.StdEncoding.DecodeString(args[2]); err != nil {
+		return err
+	}
+	return xhyve.Run(append(strings.Split(string(d0), " "), "-f",
+		fmt.Sprintf("%s%v", string(d1), string(d2))))
 }
 
 func bootVM(vipre *viper.Viper) (err error) {
@@ -171,7 +198,7 @@ func bootVM(vipre *viper.Viper) (err error) {
 				vm.Name, vm.PublicIP, c.Process.Pid)
 		}
 	}()
-	// FIXME save bootlog
+
 	if !vm.Detached {
 		var oldState *terminal.State
 		fd := int(os.Stdin.Fd())
@@ -191,6 +218,28 @@ func bootVM(vipre *viper.Viper) (err error) {
 	if err = c.Start(); err != nil {
 		return fmt.Errorf("Aborting: unable to start in background. (%v)", err)
 	}
+
+	// XXX works to capture stdout _but_ for some reason it induces too high
+	// CPU usage... WIP
+	// var tty *os.File
+	// if tty, err = pty.Start(c); err != nil {
+	// 	return fmt.Errorf("Aborting: unable to start in background. (%v)", err)
+	// }
+	// defer tty.Close()
+	// go func() {
+	// 	wg.Add(1)
+	// 	scanner := bufio.NewScanner(tty)
+	// 	for scanner.Scan() {
+	// 		line := scanner.Text()
+	// 		fmt.Println("\t", line)
+	// 		if strings.Contains(line, "login: core (automatic login)") {
+	// 			fmt.Println()
+	// 			wg.Done()
+	// 			return
+	// 		}
+	// 	}
+	// }()
+
 	wg.Wait()
 	// usersDir.unshare()
 	return
@@ -223,6 +272,7 @@ func runFlagsDefaults(setFlag *pflag.FlagSet) {
 func init() {
 	runFlagsDefaults(runCmd.Flags())
 	RootCmd.AddCommand(runCmd)
+	RootCmd.AddCommand(xhyveCmd)
 }
 
 type etcExports struct {
@@ -297,7 +347,7 @@ func (vm *VMInfo) storeConfig() (err error) {
 
 func (vm *VMInfo) assembleBootPayload() (cmd *exec.Cmd, err error) {
 	var (
-		cmdline = fmt.Sprintf("%s %s %s %s ",
+		cmdline = fmt.Sprintf("%s %s %s %s",
 			"earlyprintk=serial", "console=ttyS0", "coreos.autologin",
 			"uuid="+vm.UUID)
 		prefix  = "coreos_production_pxe"
@@ -306,6 +356,7 @@ func (vm *VMInfo) assembleBootPayload() (cmd *exec.Cmd, err error) {
 		initrd = fmt.Sprintf("%s/%s/%s/%s_image.cpio.gz",
 			SessionContext.imageDir, vm.Channel, vm.Version, prefix)
 		instr = []string{
+			"libxhyve_bug",
 			"-s", "0:0,hostbridge",
 			"-l", "com1,stdio",
 			"-s", "31,lpc",
@@ -363,8 +414,13 @@ func (vm *VMInfo) assembleBootPayload() (cmd *exec.Cmd, err error) {
 			v.Slot, v.Path))
 	}
 
-	return exec.Command(vm.Xhyve, append(instr, "-f",
-		fmt.Sprintf("kexec,%s,%s,%s", vmlinuz, initrd, cmdline))...), err
+	return exec.Command(os.Args[0], "xhyve",
+			base64.StdEncoding.EncodeToString([]byte(strings.Join(instr, " "))),
+			base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("kexec,%s,%s,",
+				vmlinuz, initrd))),
+			base64.StdEncoding.EncodeToString([]byte(
+				fmt.Sprintf("%v", cmdline)))),
+		err
 }
 
 func (vm *VMInfo) atomic() (err error) {

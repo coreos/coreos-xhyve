@@ -317,17 +317,16 @@ func (vm *VMInfo) isActive() bool {
 			log.Println("removing staled", staled)
 		}
 
-		if e :=
-			os.RemoveAll(staled); e != nil {
+		if e := os.RemoveAll(staled); e != nil {
 			log.Println(e)
 		}
 	}
-	if vm.Pid < 0 {
+	if vm.Pid < 1 {
 		clean()
 		return false
 	}
 	if p, _ := ps.FindProcess(vm.Pid); p == nil ||
-		!strings.HasPrefix(p.Executable(), "xhyve") {
+		!strings.HasPrefix(p.Executable(), "coreos") {
 		clean()
 		return false
 	}
