@@ -27,7 +27,7 @@
 		},
 		{
 			"ImportPath": "github.com/hooklift/xhyve",
-			"Rev": "24bc9b5fe7cc4ae84ce5ad5cd0e677efd4cf4133"
+			"Rev": "9622b3100eaeebde930c87c55a2a08e0ade2c3af"
 		},
 		{
 			"ImportPath": "github.com/inconshreveable/mousetrap",
@@ -61,8 +61,8 @@
 		},
 		{
 			"ImportPath": "github.com/russross/blackfriday",
-			"Comment": "v1.3",
-			"Rev": "8cec3a854e68dba10faabbe31c089abf4a3e57a6"
+			"Comment": "v1.3-11-ga18a46c",
+			"Rev": "a18a46c9b94395417241e528fc53478ad914c670"
 		},
 		{
 			"ImportPath": "github.com/satori/go.uuid",
@@ -78,7 +78,7 @@
 		},
 		{
 			"ImportPath": "github.com/spf13/cobra",
-			"Rev": "53d96508f5c9311f5dade714e1de7bd6a9d2af4a"
+			"Rev": "8b2293c74173adb0e12df6862c1ea36afac2401f"
 		},
 		{
 			"ImportPath": "github.com/spf13/jwalterweatherman",
@@ -86,7 +86,7 @@
 		},
 		{
 			"ImportPath": "github.com/spf13/pflag",
-			"Rev": "b084184666e02084b8ccb9b704bf0d79c466eb1d"
+			"Rev": "08b1a584251b5b62f458943640fc8ebd4d50aaa5"
 		},
 		{
 			"ImportPath": "github.com/spf13/viper",
@@ -94,19 +94,19 @@
 		},
 		{
 			"ImportPath": "golang.org/x/crypto/cast5",
-			"Rev": "59a4410d829a8bb774b02b56d4aeab633414f233"
+			"Rev": "c8b9e6388ef638d5a8a9d865c634befdc46a6784"
 		},
 		{
 			"ImportPath": "golang.org/x/crypto/curve25519",
-			"Rev": "59a4410d829a8bb774b02b56d4aeab633414f233"
+			"Rev": "c8b9e6388ef638d5a8a9d865c634befdc46a6784"
 		},
 		{
 			"ImportPath": "golang.org/x/crypto/openpgp",
-			"Rev": "59a4410d829a8bb774b02b56d4aeab633414f233"
+			"Rev": "c8b9e6388ef638d5a8a9d865c634befdc46a6784"
 		},
 		{
 			"ImportPath": "golang.org/x/crypto/ssh",
-			"Rev": "59a4410d829a8bb774b02b56d4aeab633414f233"
+			"Rev": "c8b9e6388ef638d5a8a9d865c634befdc46a6784"
 		},
 		{
 			"ImportPath": "gopkg.in/yaml.v2",

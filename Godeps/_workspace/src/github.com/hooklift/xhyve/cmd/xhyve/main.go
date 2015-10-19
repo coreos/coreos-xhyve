@@ -19,12 +19,19 @@ func init() {
 
 func main() {
 	done := make(chan bool)
+	ptyCh := make(chan string)
+
 	go func() {
-		if err := xhyve.Run(os.Args); err != nil {
+		if err := xhyve.Run(os.Args, ptyCh); err != nil {
 			fmt.Println(err)
 		}
 		done <- true
 	}()
+
+	fmt.Printf("Waiting on a pseudo-terminal to be ready... ")
+	pty := <-ptyCh
+	fmt.Printf("done\n")
+	fmt.Printf("Hook up your terminal emulator to %s in order to connect to your VM\n", pty)
 
 	<-done
 	fmt.Println("Hypervisor goroutine finished!")

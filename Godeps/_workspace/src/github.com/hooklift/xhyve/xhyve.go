@@ -15,7 +15,6 @@ import (
 	"unsafe"
 )
 
-var argv []*C.char
 var termios syscall.Termios
 
 // getTermios gets the current settings for the terminal.
@@ -59,6 +58,16 @@ func go_callback_exit(status C.int) {
 	runtime.UnlockOSThread()
 }
 
+// go_set_pty_name is called by xhyve whenever a master/slave pseudo-terminal is setup in
+// COM1 or COM2.
+//export go_set_pty_name
+func go_set_pty_name(name *C.char) {
+	if newPty == nil {
+		return
+	}
+	newPty <- C.GoString(name)
+}
+
 func init() {
 	// Saves stty settings
 	termios = getTermios()
@@ -70,8 +79,20 @@ func init() {
 	runtime.LockOSThread()
 }
 
+// newPty is a channel to send through the devices path names
+// for new devices created when a LPC device is added with the
+// option: autopty. Example: -l com1,autopty
+// If you add a LPC device on COM2 with autopty enabled, you might need to
+// make sure the guest OS runs getty on the pseudo-terminal device created, so
+// a login prompt is shown once you open such pseudo-terminal.
+var newPty chan string
+
+var argv []*C.char
+
 // Run runs xhyve hypervisor.
-func Run(params []string) error {
+func Run(params []string, newPtyCh chan string) error {
+	newPty = newPtyCh
+
 	argc := C.int(len(params))
 	argv = make([]*C.char, argc)
 	for i, arg := range params {

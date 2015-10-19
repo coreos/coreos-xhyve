@@ -566,7 +566,7 @@ vcpu_set_capabilities(int cpu)
 			handler[VM_EXITCODE_HLT] = vmexit_hlt;
 	}
 
-        if (fbsdrun_vmexit_on_pause()) {
+		if (fbsdrun_vmexit_on_pause()) {
 		/*
 		 * pause exit support required for this mode
 		 */

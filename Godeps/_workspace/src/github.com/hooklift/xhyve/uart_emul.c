@@ -666,7 +666,9 @@ uart_set_backend(struct uart_softc *sc, const char *opts)
 			return retval;
 		}
 
-		fprintf(stdout, "Hook up a terminal emulator to %s in order to access your VM\n", ptyname);
+		// Sends to Go land the device path name for the slave pseudo-terminal.
+		go_set_pty_name(ptyname);
+
 		sc->tty.fd = ptyfd;
 		sc->tty.name = ptyname;
 		sc->tty.opened = true;
