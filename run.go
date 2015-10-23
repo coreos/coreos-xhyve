@@ -36,7 +36,6 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
-	"golang.org/x/crypto/ssh/terminal"
 )
 
 var (
@@ -72,8 +71,10 @@ var (
 func runCommand(cmd *cobra.Command, args []string) error {
 	return bootVM(vipre)
 }
+
 func xhyveCommand(cmd *cobra.Command, args []string) (err error) {
 	var d0, d1, d2 []byte
+
 	if d0, err = base64.StdEncoding.DecodeString(args[0]); err != nil {
 		return err
 	}
@@ -84,7 +85,7 @@ func xhyveCommand(cmd *cobra.Command, args []string) (err error) {
 		return err
 	}
 	return xhyve.Run(append(strings.Split(string(d0), " "), "-f",
-		fmt.Sprintf("%s%v", string(d1), string(d2))))
+		fmt.Sprintf("%s%v", string(d1), string(d2))), make(chan string))
 }
 
 func bootVM(vipre *viper.Viper) (err error) {
@@ -200,13 +201,6 @@ func bootVM(vipre *viper.Viper) (err error) {
 	}()
 
 	if !vm.Detached {
-		var oldState *terminal.State
-		fd := int(os.Stdin.Fd())
-		if oldState, err = terminal.MakeRaw(fd); err != nil {
-			return
-		}
-		defer terminal.Restore(fd, oldState)
-
 		c.Stdout, c.Stdin, c.Stderr = os.Stdout, os.Stdin, os.Stderr
 		if err = c.Run(); err != nil && !strings.HasSuffix(err.Error(),
 			"exit status 2") {
@@ -218,27 +212,6 @@ func bootVM(vipre *viper.Viper) (err error) {
 	if err = c.Start(); err != nil {
 		return fmt.Errorf("Aborting: unable to start in background. (%v)", err)
 	}
-
-	// XXX works to capture stdout _but_ for some reason it induces too high
-	// CPU usage... WIP
-	// var tty *os.File
-	// if tty, err = pty.Start(c); err != nil {
-	// 	return fmt.Errorf("Aborting: unable to start in background. (%v)", err)
-	// }
-	// defer tty.Close()
-	// go func() {
-	// 	wg.Add(1)
-	// 	scanner := bufio.NewScanner(tty)
-	// 	for scanner.Scan() {
-	// 		line := scanner.Text()
-	// 		fmt.Println("\t", line)
-	// 		if strings.Contains(line, "login: core (automatic login)") {
-	// 			fmt.Println()
-	// 			wg.Done()
-	// 			return
-	// 		}
-	// 	}
-	// }()
 
 	wg.Wait()
 	// usersDir.unshare()
