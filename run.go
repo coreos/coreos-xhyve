@@ -73,28 +73,36 @@ func runCommand(cmd *cobra.Command, args []string) error {
 }
 
 func xhyveCommand(cmd *cobra.Command, args []string) (err error) {
-	var d0, d1, d2 []byte
+	var (
+		a0, a1, a2 string
+		strDecode  = func(s string) (string, error) {
+			b, e := base64.StdEncoding.DecodeString(s)
+			return string(b), e
+		}
+	)
 
-	if d0, err = base64.StdEncoding.DecodeString(args[0]); err != nil {
+	if a0, err = strDecode(args[0]); err != nil {
 		return err
 	}
-	if d1, err = base64.StdEncoding.DecodeString(args[1]); err != nil {
+	if a1, err = strDecode(args[1]); err != nil {
 		return err
 	}
-	if d2, err = base64.StdEncoding.DecodeString(args[2]); err != nil {
+	if a2, err = strDecode(args[2]); err != nil {
 		return err
 	}
-	return xhyve.Run(append(strings.Split(string(d0), " "), "-f",
-		fmt.Sprintf("%s%v", string(d1), string(d2))), make(chan string))
+	return xhyve.Run(append(strings.Split(a0, " "),
+		"-f", fmt.Sprintf("%s%v", a1, a2)), make(chan string))
 }
 
 func bootVM(vipre *viper.Viper) (err error) {
-	vm := &VMInfo{}
-	c := &exec.Cmd{}
+	var (
+		mac, rundir string
+		vm, c       = &VMInfo{}, &exec.Cmd{}
+	)
 
-	if vm.Channel, vm.Version, err = lookupImage(
-		normalizeChannelName(vipre.GetString("channel")),
-		normalizeVersion(vipre.GetString("version")), false); err != nil {
+	if vm.Channel, vm.Version, err =
+		lookupImage(normalizeChannelName(vipre.GetString("channel")),
+			normalizeVersion(vipre.GetString("version")), false); err != nil {
 		return
 	}
 	if err = vm.validateNameAndUUID(vipre.GetString("name"),
@@ -107,10 +115,6 @@ func bootVM(vipre *viper.Viper) (err error) {
 	vm.Extra = vipre.GetString("extra")
 	vm.SSHkey = vipre.GetString("sshkey")
 	vm.Root, vm.Pid = -1, -1
-
-	if err = vm.xhyveCheck(vipre.GetString("xhyve")); err != nil {
-		return
-	}
 
 	vm.validateRAM(vipre.GetInt("memory"))
 
@@ -131,18 +135,19 @@ func bootVM(vipre *viper.Viper) (err error) {
 	if err = vm.addTAPinterface(vipre.GetString("tap")); err != nil {
 		return
 	}
-	if err = vm.validateCloudConfig(
-		vipre.GetString("cloud_config")); err != nil {
+
+	err = vm.validateCloudConfig(vipre.GetString("cloud_config"))
+	if err != nil {
 		return
 	}
 
-	if vm.InternalSSHprivKey,
-		vm.InternalSSHauthKey, err = sshKeyGen(); err != nil {
+	vm.InternalSSHprivKey, vm.InternalSSHauthKey, err = sshKeyGen()
+	if err != nil {
 		return fmt.Errorf("%v (%v)",
 			"Aborting: unable to generate internal SSH key pair (!)", err)
 	}
 
-	rundir := filepath.Join(SessionContext.runDir, vm.UUID)
+	rundir = filepath.Join(SessionContext.runDir, vm.UUID)
 	if err = os.RemoveAll(rundir); err != nil {
 		return
 	}
@@ -162,7 +167,7 @@ func bootVM(vipre *viper.Viper) (err error) {
 	if err = vm.storeConfig(); err != nil {
 		return
 	}
-	var mac string
+
 	if mac, err = uuid2ip.GuestMACfromUUID(vm.UUID); err != nil {
 		return
 	}
@@ -191,9 +196,6 @@ func bootVM(vipre *viper.Viper) (err error) {
 		vm.storeConfig()
 	}()
 	defer func() {
-		if err != nil {
-			return
-		}
 		if vm.Detached && err == nil {
 			log.Printf("started '%s' in background with IP %v and PID %v\n",
 				vm.Name, vm.PublicIP, c.Process.Pid)
@@ -202,11 +204,7 @@ func bootVM(vipre *viper.Viper) (err error) {
 
 	if !vm.Detached {
 		c.Stdout, c.Stdin, c.Stderr = os.Stdout, os.Stdin, os.Stderr
-		if err = c.Run(); err != nil && !strings.HasSuffix(err.Error(),
-			"exit status 2") {
-			return err
-		}
-		return nil
+		return c.Run()
 	}
 
 	if err = c.Start(); err != nil {
@@ -225,21 +223,20 @@ func runFlagsDefaults(setFlag *pflag.FlagSet) {
 	setFlag.Int("memory", 1024, "VM's RAM (up to 3072/instance)")
 	setFlag.Int("cpus", 1, "VM's vCPUS")
 	setFlag.String("cloud_config", "",
-		"cloud-config file location (either URL or local path)")
+		"cloud-config file location (either a remote URL or a local path)")
 	setFlag.String("sshkey", "", "VM's default ssh key")
-	setFlag.String("xhyve", "/usr/local/bin/xhyve", "xhyve binary to use")
-
-	// available but hidden...
-	setFlag.String("extra", "", "additional arguments to xhyve hypervisor")
-	setFlag.MarkHidden("extra")
-
 	setFlag.String("root", "", "append a (persistent) root volume to VM")
 	setFlag.String("cdrom", "", "append an CDROM (.iso) to VM")
 	setFlag.StringSlice("volume", nil, "append disk volumes to VM")
 	setFlag.String("tap", "", "append tap interface to VM")
 	setFlag.BoolP("detached", "d", false,
 		"starts the VM in detached (background) mode")
-	setFlag.StringP("name", "n", "", "names the VM. (the default is the uuid)")
+	setFlag.StringP("name", "n", "",
+		"names the VM. (if absent defaults to VM's UUID)")
+
+	// available but hidden...
+	setFlag.String("extra", "", "additional arguments to xhyve hypervisor")
+	setFlag.MarkHidden("extra")
 }
 
 func init() {
@@ -370,8 +367,8 @@ func (vm *VMInfo) assembleBootPayload() (cmd *exec.Cmd, err error) {
 
 	for v, vv := range vm.Ethernet {
 		if vv.Type == Tap {
-			instr = append(instr, "-s",
-				fmt.Sprintf("2:%d,virtio-tap,%v", v, vv.Path))
+			instr = append(instr,
+				"-s", fmt.Sprintf("2:%d,virtio-tap,%v", v, vv.Path))
 		} else {
 			instr = append(instr, "-s", fmt.Sprintf("2:%d,virtio-net", v))
 		}
@@ -386,13 +383,13 @@ func (vm *VMInfo) assembleBootPayload() (cmd *exec.Cmd, err error) {
 		instr = append(instr, "-s", fmt.Sprintf("4:%d,virtio-blk,%s",
 			v.Slot, v.Path))
 	}
-
+	strEncode := func(s string) string {
+		return base64.StdEncoding.EncodeToString([]byte(s))
+	}
 	return exec.Command(os.Args[0], "xhyve",
-			base64.StdEncoding.EncodeToString([]byte(strings.Join(instr, " "))),
-			base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("kexec,%s,%s,",
-				vmlinuz, initrd))),
-			base64.StdEncoding.EncodeToString([]byte(
-				fmt.Sprintf("%v", cmdline)))),
+			strEncode(strings.Join(instr, " ")),
+			strEncode(fmt.Sprintf("kexec,%s,%s,", vmlinuz, initrd)),
+			strEncode(fmt.Sprintf("%v", cmdline))),
 		err
 }
 
@@ -406,12 +403,6 @@ func (vm *VMInfo) atomic() (err error) {
 			"Another VM is running with same name.", vm.Name)
 	}
 	return nil
-}
-
-func (vm *VMInfo) xhyveCheck(xhyve string) (err error) {
-	vm.Xhyve = xhyve
-	_, err = exec.LookPath(xhyve)
-	return
 }
 
 func (vm *VMInfo) validateNameAndUUID(name, xxid string) (err error) {
@@ -531,15 +522,15 @@ func (vm *VMInfo) validateVolumes(volumes []string, root bool) (err error) {
 	var abs string
 	for _, j := range volumes {
 		if j != "" {
-			if !strings.HasSuffix(j, ".img") {
-				return fmt.Errorf("Aborting: --volume payload MUST end"+
-					" in '.img' ('%s' doesn't)", j)
-			}
 			if _, err = os.Stat(j); err != nil {
 				return
 			}
 			if abs, err = filepath.Abs(j); err != nil {
 				return
+			}
+			if !strings.HasSuffix(j, ".img") {
+				return fmt.Errorf("Aborting: --volume payload MUST end"+
+					" in '.img' ('%s' doesn't)", j)
 			}
 			// check atomicity
 			var up []VMInfo

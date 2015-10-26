@@ -27,7 +27,7 @@ Starts a new CoreOS instance
 
 .PP
 \fB\-\-cloud\_config\fP=""
-    cloud\-config file location (either URL or local path)
+    cloud\-config file location (either a remote URL or a local path)
 
 .PP
 \fB\-\-cpus\fP=1
@@ -43,7 +43,7 @@ Starts a new CoreOS instance
 
 .PP
 \fB\-n\fP, \fB\-\-name\fP=""
-    names the VM. (the default is the uuid)
+    names the VM. (if absent defaults to VM's UUID)
 
 .PP
 \fB\-\-root\fP=""
@@ -68,10 +68,6 @@ Starts a new CoreOS instance
 .PP
 \fB\-\-volume\fP=[]
     append disk volumes to VM
-
-.PP
-\fB\-\-xhyve\fP="/usr/local/bin/xhyve"
-    xhyve binary to use
 
 
 .SH OPTIONS INHERITED FROM PARENT COMMANDS

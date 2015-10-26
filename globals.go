@@ -24,19 +24,15 @@ import (
 
 type (
 	sessionInfo struct {
-		configDir, imageDir, runDir string
-		pwd, uid, gid, username     string
-		hasPowers, debug, json      bool
+		configDir, imageDir, runDir, pwd, uid, gid, username string
+		hasPowers, debug, json                               bool
 	}
 	// VMInfo - per VM settings
 	VMInfo struct {
 		Name, Channel, Version                 string
 		Cpus, Memory                           int
-		UUID, Xhyve                            string
-		CloudConfig                            string `json:",omitempty"`
-		CClocation                             string `json:",omitempty"`
-		SSHkey                                 string `json:",omitempty"`
-		Extra                                  string `json:",omitempty"`
+		UUID                                   string
+		CloudConfig, CClocation, SSHkey, Extra string `json:",omitempty"`
 		Root                                   int
 		Ethernet                               []NetworkInterface
 		Storage                                storageAssets
@@ -58,8 +54,7 @@ type (
 		Type, Path string
 	}
 	storageAssets struct {
-		CDDrives   map[string]StorageDevice `json:",omitempty"`
-		HardDrives map[string]StorageDevice `json:",omitempty"`
+		CDDrives, HardDrives map[string]StorageDevice `json:",omitempty"`
 	}
 )
 

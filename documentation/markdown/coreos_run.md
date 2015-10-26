@@ -16,18 +16,17 @@ coreos run
 ```
       --cdrom="": append an CDROM (.iso) to VM
       --channel="alpha": CoreOS channel
-      --cloud_config="": cloud-config file location (either URL or local path)
+      --cloud_config="": cloud-config file location (either a remote URL or a local path)
       --cpus=1: VM's vCPUS
   -d, --detached[=false]: starts the VM in detached (background) mode
       --memory=1024: VM's RAM (up to 3072/instance)
-  -n, --name="": names the VM. (the default is the uuid)
+  -n, --name="": names the VM. (if absent defaults to VM's UUID)
       --root="": append a (persistent) root volume to VM
       --sshkey="": VM's default ssh key
       --tap="": append tap interface to VM
       --uuid="random": VM's UUID
       --version="latest": CoreOS version
       --volume=[]: append disk volumes to VM
-      --xhyve="/usr/local/bin/xhyve": xhyve binary to use
 ```
 
 ### Options inherited from parent commands

@@ -98,9 +98,8 @@ func (vm *VMInfo) pp(extended bool) {
 		if vm.SSHkey != "" {
 			fmt.Printf("  - ssh key: %v\n", vm.SSHkey)
 		}
-		fmt.Printf("  - hypervisor: %v\n", vm.Xhyve)
 		if vm.Extra != "" {
-			fmt.Printf("  - custom args to xhyve: %v\n", vm.Xhyve)
+			fmt.Printf("  - custom args to xhyve: %v\n", vm.Extra)
 		}
 	}
 }
