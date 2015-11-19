@@ -220,7 +220,8 @@ func runFlagsDefaults(setFlag *pflag.FlagSet) {
 	setFlag.String("channel", "alpha", "CoreOS channel")
 	setFlag.String("version", "latest", "CoreOS version")
 	setFlag.String("uuid", "random", "VM's UUID")
-	setFlag.Int("memory", 1024, "VM's RAM (up to 3072/instance)")
+	setFlag.Int("memory", 1024,
+		"VM's RAM, in MB, per instance (1024 < memory < 3072)")
 	setFlag.Int("cpus", 1, "VM's vCPUS")
 	setFlag.String("cloud_config", "",
 		"cloud-config file location (either a remote URL or a local path)")

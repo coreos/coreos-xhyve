@@ -19,7 +19,7 @@ coreos run
       --cloud_config="": cloud-config file location (either a remote URL or a local path)
       --cpus=1: VM's vCPUS
   -d, --detached[=false]: starts the VM in detached (background) mode
-      --memory=1024: VM's RAM (up to 3072/instance)
+      --memory=1024: VM's RAM, in MB, per instance (1024 < memory < 3072)
   -n, --name="": names the VM. (if absent defaults to VM's UUID)
       --root="": append a (persistent) root volume to VM
       --sshkey="": VM's default ssh key
