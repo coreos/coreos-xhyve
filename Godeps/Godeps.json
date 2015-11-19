@@ -61,16 +61,16 @@
 		},
 		{
 			"ImportPath": "github.com/russross/blackfriday",
-			"Comment": "v1.3-11-ga18a46c",
-			"Rev": "a18a46c9b94395417241e528fc53478ad914c670"
+			"Comment": "v1.4-2-g300106c",
+			"Rev": "300106c228d52c8941d4b3de6054a6062a86dda3"
 		},
 		{
 			"ImportPath": "github.com/satori/go.uuid",
-			"Rev": "08f0718b61e95ddba0ade3346725fe0e4bf28ca6"
+			"Rev": "d41af8bb6a7704f00bc3b7cba9355ae6a5a80048"
 		},
 		{
 			"ImportPath": "github.com/shurcooL/sanitized_anchor_name",
-			"Rev": "244f5ac324cb97e1987ef901a0081a77bfd8e845"
+			"Rev": "10ef21a441db47d8b13ebcc5fd2310f636973c77"
 		},
 		{
 			"ImportPath": "github.com/spf13/cast",
@@ -78,11 +78,11 @@
 		},
 		{
 			"ImportPath": "github.com/spf13/cobra",
-			"Rev": "8b2293c74173adb0e12df6862c1ea36afac2401f"
+			"Rev": "cb63a06ed9b30b3b58946f4625ef9858b10e320a"
 		},
 		{
 			"ImportPath": "github.com/spf13/jwalterweatherman",
-			"Rev": "3d60171a64319ef63c78bd45bd60e6eab1e75f8b"
+			"Rev": "c2aa07df593850a04644d77bb757d002e517a296"
 		},
 		{
 			"ImportPath": "github.com/spf13/pflag",
@@ -90,23 +90,28 @@
 		},
 		{
 			"ImportPath": "github.com/spf13/viper",
-			"Rev": "1967d93db724f4a5c0e101307e96d82ff520a067"
+			"Rev": "e37b56e207dda4d79b9defe0548e960658ee8b6b"
 		},
 		{
 			"ImportPath": "golang.org/x/crypto/cast5",
-			"Rev": "c8b9e6388ef638d5a8a9d865c634befdc46a6784"
+			"Rev": "346896d57731cb5670b36c6178fc5519f3225980"
 		},
 		{
 			"ImportPath": "golang.org/x/crypto/curve25519",
-			"Rev": "c8b9e6388ef638d5a8a9d865c634befdc46a6784"
+			"Rev": "346896d57731cb5670b36c6178fc5519f3225980"
 		},
 		{
 			"ImportPath": "golang.org/x/crypto/openpgp",
-			"Rev": "c8b9e6388ef638d5a8a9d865c634befdc46a6784"
+			"Rev": "346896d57731cb5670b36c6178fc5519f3225980"
 		},
 		{
 			"ImportPath": "golang.org/x/crypto/ssh",
-			"Rev": "c8b9e6388ef638d5a8a9d865c634befdc46a6784"
+			"Rev": "346896d57731cb5670b36c6178fc5519f3225980"
+		},
+		{
+			"ImportPath": "gopkg.in/fsnotify.v1",
+			"Comment": "v1.2.5",
+			"Rev": "2cdd39bd6129c6a49c74fb07fb9d77ba1271c572"
 		},
 		{
 			"ImportPath": "gopkg.in/yaml.v2",

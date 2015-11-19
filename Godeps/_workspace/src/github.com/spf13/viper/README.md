@@ -1,18 +1,19 @@
-viper [![Build Status](https://travis-ci.org/spf13/viper.svg)](https://travis-ci.org/spf13/viper)
-=====
+![viper logo](https://cloud.githubusercontent.com/assets/173412/10886745/998df88a-8151-11e5-9448-4736db51020d.png)
 
-[![Join the chat at https://gitter.im/spf13/viper](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/spf13/viper?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+Go configuration with fangs!
 
-Go configuration with fangs
+ [![Build Status](https://travis-ci.org/spf13/viper.svg)](https://travis-ci.org/spf13/viper) [![Join the chat at https://gitter.im/spf13/viper](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/spf13/viper?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 
 ## What is Viper?
 
-Viper is a complete configuration solution for go applications. It is designed
+Viper is a complete configuration solution for go applications including 12 factor apps. It is designed
 to work within an application, and can handle all types of configuration needs
 and formats. It supports:
 
 * setting defaults
 * reading from JSON, TOML, and YAML config files
+* live watching and re-reading of config files (optional)
 * reading from environment variables
 * reading from remote config systems (Etcd or Consul), and watching changes
 * reading from command line flags
@@ -73,15 +74,42 @@ viper.SetDefault("Taxonomies", map[string]string{"tag": "tags", "category": "cat
 Viper requires minimal configuration so it knows where to look for config files.
 Viper supports JSON, TOML and YAML files. Viper can search multiple paths, but
 currently a single Viper instance only supports a single configuration file.
+Viper does not default to any configuration search paths leaving defaults decision
+to an application.
+
+Here is an example of how to use Viper to search for and read a configuration file.
+None of the specific paths are required, but at least one path should be provided
+where a configuration file is expected.
 
 ```go
 viper.SetConfigName("config") // name of config file (without extension)
 viper.AddConfigPath("/etc/appname/")   // path to look for the config file in
 viper.AddConfigPath("$HOME/.appname")  // call multiple times to add many search paths
+viper.AddConfigPath(".")               // optionally look for config in the working directory
 err := viper.ReadInConfig() // Find and read the config file
 if err != nil { // Handle errors reading the config file
 	panic(fmt.Errorf("Fatal error config file: %s \n", err))
 }
+```
+
+### Watching and re-reading config files
+
+Viper supports the ability to have your application live read a config file while running.
+
+Gone are the days of needing to restart a server to have a config take effect,
+viper powered applications can read an update to a config file while running and
+not miss a beat.
+
+Simply tell the viper instance to watchConfig. 
+Optionally you can provide a function for Viper to run each time a change occurs.
+
+**Make sure you add all of the configPaths prior to calling `WatchConfig()`**
+
+```go
+		viper.WatchConfig()
+		viper.OnConfigChange(func(e fsnotify.Event) {
+			fmt.Println("Config file changed:", e.Name)
+		})
 ```
 
 ### Reading Config from io.Reader
@@ -212,7 +240,7 @@ viper.BindPFlag("port", serverCmd.Flags().Lookup("port"))
 To enable remote support in Viper, do a blank import of the `viper/remote`
 package:
 
-`import _ github.com/spf13/viper/remote`
+`import _ "github.com/spf13/viper/remote"`
 
 Viper will read a config string (as JSON, TOML, or YAML) retrieved from a path
 in a Key/Value store such as Etcd or Consul.  These values take precedence over
@@ -275,19 +303,19 @@ err := runtime_viper.ReadRemoteConfig()
 // unmarshal config
 runtime_viper.Unmarshal(&runtime_conf)
 
-// open a goroutine to wath remote changes forever
+// open a goroutine to watch remote changes forever
 go func(){
 	for {
 	    time.Sleep(time.Second * 5) // delay after each request
-	
-	    // currenlty, only tested with etcd support
+
+	    // currently, only tested with etcd support
 	    err := runtime_viper.WatchRemoteConfig()
 	    if err != nil {
 	        log.Errorf("unable to read remote config: %v", err)
 	        continue
 	    }
-	
-	    // unmarshal new config into our runtime config struct. you can also use channel 
+
+	    // unmarshal new config into our runtime config struct. you can also use channel
 	    // to implement a signal to notify the system of the changes
 	    runtime_viper.Unmarshal(&runtime_conf)
 	}
