@@ -34,7 +34,7 @@ var (
 				return fmt.Errorf("This command requires either at least " +
 					"one argument to work or --all.")
 			}
-			return SessionContext.allowedToRun()
+			return nil
 		},
 		RunE: killCommand,
 	}
@@ -75,6 +75,9 @@ func (vm VMInfo) halt() (err error) {
 	if e := sshSession.executeRemoteCommand("sudo sync;sudo halt"); e != nil {
 		// ssh messed up for some reason or target has no IP
 		log.Printf("couldn't ssh to %v (%v)...\n", vm.Name, e)
+		if canKill := SessionContext.allowedToRun(); canKill != nil {
+			return canKill
+		}
 		if p, ee := os.FindProcess(vm.Pid); ee == nil {
 			log.Println("hard kill...")
 			if err = p.Kill(); err != nil {

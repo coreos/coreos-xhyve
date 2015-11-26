@@ -281,8 +281,8 @@ func (session *sessionInfo) init() (err error) {
 
 func (session *sessionInfo) allowedToRun() (err error) {
 	if !session.hasPowers {
-		return fmt.Errorf("not enough previleges to start or halt VMs." +
-			" use 'sudo'")
+		return fmt.Errorf("not enough previleges to start or forcefully " +
+			"halt VMs. use 'sudo'")
 	}
 	return
 }
