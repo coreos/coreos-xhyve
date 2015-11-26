@@ -136,9 +136,9 @@ For example, "--debug" => "COREOS_DEBUG"
 - start your `docker` and `rkt` playground.
   ```
   ❯❯❯ sudo UUID=deadbeef-dead-dead-dead-deaddeafbeef \
-    ./coreos run --volume vda@/path/to/persistent.img --cloud_config \
-    cloud-init/docker-only-with-persistent-storage.txt --cpus 2 --memory 2048 \
-    --name containerland -d
+    ./coreos run --volume absolute_or_relative_path/to/persistent.img \
+    --cloud_config cloud-init/docker-only-with-persistent-storage.txt \
+    --cpus 2 --memory 2048 --name containerland -d
   ```
  this will start a VM named `containerland` in the background (`-d`) with the
  volume we created previously feeded, 2 virtual cores and 2GB of RAM. The
