@@ -78,7 +78,7 @@
 		},
 		{
 			"ImportPath": "github.com/spf13/cobra",
-			"Rev": "cb63a06ed9b30b3b58946f4625ef9858b10e320a"
+			"Rev": "1c44ec8d3f1552cac48999f9306da23c4d8a288b"
 		},
 		{
 			"ImportPath": "github.com/spf13/jwalterweatherman",
@@ -94,19 +94,19 @@
 		},
 		{
 			"ImportPath": "golang.org/x/crypto/cast5",
-			"Rev": "346896d57731cb5670b36c6178fc5519f3225980"
+			"Rev": "beef0f4390813b96e8e68fd78570396d0f4751fc"
 		},
 		{
 			"ImportPath": "golang.org/x/crypto/curve25519",
-			"Rev": "346896d57731cb5670b36c6178fc5519f3225980"
+			"Rev": "beef0f4390813b96e8e68fd78570396d0f4751fc"
 		},
 		{
 			"ImportPath": "golang.org/x/crypto/openpgp",
-			"Rev": "346896d57731cb5670b36c6178fc5519f3225980"
+			"Rev": "beef0f4390813b96e8e68fd78570396d0f4751fc"
 		},
 		{
 			"ImportPath": "golang.org/x/crypto/ssh",
-			"Rev": "346896d57731cb5670b36c6178fc5519f3225980"
+			"Rev": "beef0f4390813b96e8e68fd78570396d0f4751fc"
 		},
 		{
 			"ImportPath": "gopkg.in/fsnotify.v1",
