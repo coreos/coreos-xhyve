@@ -125,7 +125,7 @@ func lookupImage(channel, version string, override bool) (a, b string, err error
 		}
 	}
 	if isLocal && !override {
-		log.Printf("%s/%s already available or your system\n", channel, version)
+		log.Printf("%s/%s already available on your system\n", channel, version)
 		return channel, version, err
 	}
 	return localize(channel, version)
