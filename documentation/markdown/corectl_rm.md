@@ -1,21 +1,21 @@
-## coreos pull
+## corectl rm
 
-Pulls a CoreOS image from upstream
+Removes one or more CoreOS images from local fs
 
 ### Synopsis
 
 
-Pulls a CoreOS image from upstream
+Removes one or more CoreOS images from local fs
 
 ```
-coreos pull
+corectl rm
 ```
 
 ### Options
 
 ```
       --channel="alpha": CoreOS channel
-  -f, --force[=false]: override local image, if any
+      --old[=false]: removes outdated images
       --version="latest": CoreOS version
 ```
 
@@ -26,5 +26,5 @@ coreos pull
 ```
 
 ### SEE ALSO
-* [coreos](coreos.md)	 - CoreOS, on top of OS X and xhyve, made simple.
+* [corectl](corectl.md)	 - CoreOS over OSX made simple.
 

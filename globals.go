@@ -312,8 +312,8 @@ coreos:
     id: "xhyve"
     version_id: "@@version@@"
     name: "CoreOS on top of the xhyve hypervisor"
-    home-url: "https://github.com/coreos/coreos-xhyve"
-    bug-report-url: "https://github.com/coreos/coreos-xhyve/issues/"
+    home-url: "https://github.com/TheNewNormal/corectl"
+    bug-report-url: "https://github.com/TheNewNormal/corectl/issues/"
   units:
   - name: Users.mount
     command: start

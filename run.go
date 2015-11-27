@@ -30,7 +30,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/AntonioMeireles/coreos-xhyve/uuid2ip"
+	"github.com/TheNewNormal/corectl/uuid2ip"
 	"github.com/hooklift/xhyve"
 	"github.com/satori/go.uuid"
 	"github.com/spf13/cobra"

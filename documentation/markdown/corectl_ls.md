@@ -1,4 +1,4 @@
-## coreos ls
+## corectl ls
 
 Lists locally available CoreOS images
 
@@ -8,7 +8,7 @@ Lists locally available CoreOS images
 Lists locally available CoreOS images
 
 ```
-coreos ls
+corectl ls
 ```
 
 ### Options
@@ -26,5 +26,5 @@ coreos ls
 ```
 
 ### SEE ALSO
-* [coreos](coreos.md)	 - CoreOS, on top of OS X and xhyve, made simple.
+* [corectl](corectl.md)	 - CoreOS over OSX made simple.
 

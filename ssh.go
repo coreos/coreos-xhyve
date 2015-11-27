@@ -40,8 +40,8 @@ var (
 			return
 		},
 		RunE: sshCommand,
-		Example: `  coreos ssh VMid                 // logins into VMid
-  coreos ssh VMid "some commands" // runs 'some commands' inside VMid and exits`,
+		Example: `  corectl ssh VMid                 // logins into VMid
+  corectl ssh VMid "some commands" // runs 'some commands' inside VMid and exits`,
 	}
 )
 

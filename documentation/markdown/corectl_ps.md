@@ -1,4 +1,4 @@
-## coreos ps
+## corectl ps
 
 Lists running CoreOS instances
 
@@ -8,7 +8,7 @@ Lists running CoreOS instances
 Lists running CoreOS instances
 
 ```
-coreos ps
+corectl ps
 ```
 
 ### Options
@@ -25,5 +25,5 @@ coreos ps
 ```
 
 ### SEE ALSO
-* [coreos](coreos.md)	 - CoreOS, on top of OS X and xhyve, made simple.
+* [corectl](corectl.md)	 - CoreOS over OSX made simple.
 

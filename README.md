@@ -1,11 +1,12 @@
-# CoreOS + [xhyve](https://github.com/mist64/xhyve)
+# CoreOS _over_ OSX made simple
+###### built on top of [xhyve](https://github.com/mist64/xhyve)'s _golang_ [bindings](https://github.com/hooklift/xhyve)
 
 **CAVEATS**
 -----------
 
- > - `xhyve` is a young project, expect bugs! You must be running OS X 10.10.3
- >   Yosemite or later and 2010 or later Mac (i.e. with a CPU that supports EPT)
- >   for this to work.
+ > - `xhyve`, on top of we built, is a young project, so expect bugs!
+ >   You must be running OS X 10.10.3 (Yosemite) or later on a 2010
+ >   or later Mac (i.e. with a CPU that supports EPT) for things to work.
  > - if you use **any** version of VirtualBox prior to VirtualBox 4.3.30 then
  >   `xhyve` will crash your system either if VirtualBox is running, or had been
  >   run previously after the last reboot (see `xhyve`'s issues
@@ -13,42 +14,24 @@
  >   [#9](https://github.com/mist64/xhyve/issues/9) for the full context). So,
  >   if you are unable to update VirtualBox to the latest, either of the 4.x or
  >   5.x streams, and were using it in your current session please do restart
- >   your Mac before attempting to run `xhyve`.
+ >   your Mac before attempting to run `corectl`.
 
 
 ## Step by Step Instructions
 
-### Install `xhyve`
-#### from [homebrew](http://brew.sh) (recommended)
+### Install `corectl`
 ```
-❯❯❯ brew install xhyve
-```
-#### or from [source](https://github.com/mist64/xhyve)
-```
-❯❯❯ git clone https://github.com/mist64/xhyve
-❯❯❯ cd xhyve
-❯❯❯ make
-❯❯❯ sudo cp build/xhyve /usr/local/bin/
-```
-#### check it is working...
-```
-❯❯❯  xhyve -h
-Usage: xhyve [-behuwxACHPWY] [-c vcpus] [-g <gdb port>] [-l <lpc>] ...
-```
-
-### Install coreos-xhyve
-```
-❯❯❯ git clone git@github.com:coreos/coreos-xhyve.git
-❯❯❯ cd coreos-xhyve
+❯❯❯ git clone git@github.com:TheNewNormal/corectl.git
+❯❯❯ cd corectl
 ❯❯❯ make
 ```
 ### kickstart a CoreOS VM
 the following command will fetch the `latest` CoreOS Alpha image
-available, verify it (if you have `gpg` installed in your system) with the build
-public key, add an OEM xhyve personality and then load it over `xhyve`.
+available, verify it with the build public key, add an OEM xhyve
+personality and then load it over `xhyve`.
 
 ```
-❯❯❯ sudo coreos run
+❯❯❯ sudo corectl run
 
 ```
 
@@ -74,37 +57,37 @@ that will come handy when you come to play with docker volumes later...
 
 ### Usage
 ```
-CoreOS, on top of OS X and xhyve, made simple.
-❯❯❯ http://github.com/coreos/coreos-xhyve
+CoreOS over OSX made simple.
+❯❯❯ http://github.com/TheNewNormal/corectl
+
 
 Usage:
-  coreos [flags]
-  coreos [command]
+  corectl [flags]
+  corectl [command]
 
 Available Commands:
   rm          Removes one or more CoreOS images from local fs
   kill        Halts one or more running CoreOS instances
   ls          Lists locally available CoreOS images
   load        Loads from an instrumentation file (in TOML, JSON or YAML) one or more CoreOS instances
-  version     Show the (coreos-xhyve) version information
+  version     Shows corectl version information
   ps          Lists running CoreOS instances
   pull        Pulls a CoreOS image from upstream
   run         Starts a new CoreOS instance
-  ssh         Attach to a running CoreOS instance
-  help        Help about any command
+  ssh         Attach to or run commands inside a running CoreOS instance
 
 Flags:
       --debug[=false]: adds extra verbosity, and options, for debugging purposes and/or power users
 
-Use "coreos [command] --help" for more information about a command.
+Use "corectl [command] --help" for more information about a command.
 
 All flags can also be configured via upper-case environment variables prefixed with "COREOS_"
 For example, "--debug" => "COREOS_DEBUG"
 ```
-> read [here](documentation/markdown/coreos.md) the full
+> read [here](documentation/markdown/corectl.md) the full
 > auto-generated documentation.
 
-### simple usage recipe - a docker and rkt playground.
+### simple usage recipe: a docker and rkt playground
 - create a volume to store your persistent data. (will be
   `/var/lib/{docker|rkt}`)
   ```
@@ -136,7 +119,7 @@ For example, "--debug" => "COREOS_DEBUG"
 - start your `docker` and `rkt` playground.
   ```
   ❯❯❯ sudo UUID=deadbeef-dead-dead-dead-deaddeafbeef \
-    ./coreos run --volume absolute_or_relative_path/to/persistent.img \
+    ./corectl run --volume absolute_or_relative_path/to/persistent.img \
     --cloud_config cloud-init/docker-only-with-persistent-storage.txt \
     --cpus 2 --memory 2048 --name containerland -d
   ```
@@ -144,7 +127,7 @@ For example, "--debug" => "COREOS_DEBUG"
  volume we created previously feeded, 2 virtual cores and 2GB of RAM. The
  provided [cloud-config](cloud-init/docker-only-with-persistent-storage.txt)
  will format the given volume (if it wasn't yet) and bind mount both
- /var/lib/rkt and /var/lib/docker on top of it. docker will also become
+ ``/var/lib/rkt` and `/var/lib/docker` on top of it. docker will also become
  available through socket activation. above we passed arguments to the VM both
  via environment variables and command flags. both ways work, just use whatever
  suits your taste best.
@@ -162,15 +145,15 @@ For example, "--debug" => "COREOS_DEBUG"
 - now, from another *shell* in your mac...
 
   ```
-  ❯❯❯ ./coreos ps
+  ❯❯❯ ./corectl ps
 found 2 running VMs, summing 3 vCPUs and 4096MB in use.
 - containerland, alpha/794.0.0, PID 17645 (detached=true), up 1m28.687154135s
   - 2 vCPU(s), 2048 RAM
-  - cloud-config: /Users/am/go/src/github.com/AntonioMeireles/coreos-xhyve/cloud-init/docker-only-with-persistent-storage.txt
+  - cloud-config: /Users/am/go/src/github.com/AntonioMeireles/corectl/cloud-init/docker-only-with-persistent-storage.txt
   - Network Interfaces:
     - eth0 (public interface) 192.168.64.14
   - Volumes:
-    - /dev/vda (/Users/am/go/src/github.com/AntonioMeireles/coreos-xhyve/var_lib_docker.img)
+    - /dev/vda (/Users/am/go/src/github.com/AntonioMeireles/corectl/var_lib_docker.img)
 - xpto, alpha/794.0.0, PID 17648 (detached=true), up 1m26.141238951s
   - 1 vCPU(s), 2048 RAM
   - Network Interfaces:
@@ -189,23 +172,20 @@ found 2 running VMs, summing 3 vCPUs and 4096MB in use.
 or ...
 
   ```
-  ❯❯❯ ./coreos ssh containerland
+  ❯❯❯ ./corectl ssh containerland
   Last login: Wed Sep  2 17:02:44 2015
   CoreOS stable (789.0.0)
   Update Strategy: No Reboots
   core@localhost ~ $
   ```
   ```
-  ❯❯❯ ./coreos ssh containerland "sudo rkt list"
+  ❯❯❯ ./corectl ssh containerland "sudo rkt list"
   UUID	ACI	STATE	NETWORKS
 
   ```
 - have fun!
 
 ## Contributing
-coreos-xhyve is an [open source](http://opensource.org/osd) project under the
+corectl is an [open source](http://opensource.org/osd) project under the
 [Apache License, Version 2.0](http://opensource.org/licenses/Apache-2.0), ence
 contributions are gladly welcomed!
-
-See [CONTRIBUTING](./CONTRIBUTING) for details on submitting patches and the
-contribution workflow.
