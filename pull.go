@@ -44,7 +44,8 @@ var (
 
 func pullCommand(cmd *cobra.Command, args []string) (err error) {
 	_, _, err = lookupImage(normalizeChannelName(vipre.GetString("channel")),
-		normalizeVersion(vipre.GetString("version")), vipre.GetBool("force"))
+		normalizeVersion(vipre.GetString("version")), vipre.GetBool("force"),
+		false)
 	return
 }
 
@@ -93,7 +94,8 @@ func findLatestUpstream(channel string) (releaseInfo map[string]string, err erro
 	return
 }
 
-func lookupImage(channel, version string, override bool) (a, b string, err error) {
+func lookupImage(channel, version string,
+	override, preferLocal bool) (a, b string, err error) {
 	var (
 		isLocal     bool
 		ll          map[string]semver.Versions
@@ -106,18 +108,23 @@ func lookupImage(channel, version string, override bool) (a, b string, err error
 	}
 	l = ll[channel]
 	if version == "latest" {
-		if releaseInfo, err = findLatestUpstream(channel); err != nil {
-			// as we're probably offline
-			if len(l) == 0 {
-				err = fmt.Errorf("offline and not a single locally image"+
-					"available for '%s' channel", channel)
-				return channel, version, err
-			}
+		if preferLocal == true && len(l) > 0 {
 			version = l[l.Len()-1].String()
 		} else {
-			version = releaseInfo["COREOS_VERSION"]
+			if releaseInfo, err = findLatestUpstream(channel); err != nil {
+				// as we're probably offline
+				if len(l) == 0 {
+					err = fmt.Errorf("offline and not a single locally image"+
+						"available for '%s' channel", channel)
+					return channel, version, err
+				}
+				version = l[l.Len()-1].String()
+			} else {
+				version = releaseInfo["COREOS_VERSION"]
+			}
 		}
 	}
+
 	for _, i := range l {
 		if version == i.String() {
 			isLocal = true

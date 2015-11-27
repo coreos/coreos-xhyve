@@ -102,7 +102,8 @@ func bootVM(vipre *viper.Viper) (err error) {
 
 	if vm.Channel, vm.Version, err =
 		lookupImage(normalizeChannelName(vipre.GetString("channel")),
-			normalizeVersion(vipre.GetString("version")), false); err != nil {
+			normalizeVersion(vipre.GetString("version")), false,
+			vipre.GetBool("local")); err != nil {
 		return
 	}
 	if err = vm.validateNameAndUUID(vipre.GetString("name"),
@@ -232,6 +233,9 @@ func runFlagsDefaults(setFlag *pflag.FlagSet) {
 	setFlag.String("tap", "", "append tap interface to VM")
 	setFlag.BoolP("detached", "d", false,
 		"starts the VM in detached (background) mode")
+	setFlag.BoolP("local", "l", false,
+		"consumes whatever image is `latest` locally instead of looking "+
+			"online unless there's nothing available.")
 	setFlag.StringP("name", "n", "",
 		"names the VM. (if absent defaults to VM's UUID)")
 
