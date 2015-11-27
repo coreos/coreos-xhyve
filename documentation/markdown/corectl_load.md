@@ -1,4 +1,4 @@
-## coreos load
+## corectl load
 
 Loads from an instrumentation file (in TOML, JSON or YAML) one or more CoreOS instances
 
@@ -8,13 +8,13 @@ Loads from an instrumentation file (in TOML, JSON or YAML) one or more CoreOS in
 Loads from an instrumentation file (in TOML, JSON or YAML) one or more CoreOS instances
 
 ```
-coreos load
+corectl load
 ```
 
 ### Examples
 
 ```
-  coreos load profiles/demo.toml
+  corectl load profiles/demo.toml
 ```
 
 ### Options inherited from parent commands
@@ -24,5 +24,5 @@ coreos load
 ```
 
 ### SEE ALSO
-* [coreos](coreos.md)	 - CoreOS, on top of OS X and xhyve, made simple.
+* [corectl](corectl.md)	 - CoreOS over OSX made simple.
 

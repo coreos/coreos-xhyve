@@ -1,4 +1,4 @@
-## coreos ssh
+## corectl ssh
 
 Attach to or run commands inside a running CoreOS instance
 
@@ -8,14 +8,14 @@ Attach to or run commands inside a running CoreOS instance
 Attach to or run commands inside a running CoreOS instance
 
 ```
-coreos ssh
+corectl ssh
 ```
 
 ### Examples
 
 ```
-  coreos ssh VMid                 // logins into VMid
-  coreos ssh VMid "some commands" // runs 'some commands' inside VMid and exits
+  corectl ssh VMid                 // logins into VMid
+  corectl ssh VMid "some commands" // runs 'some commands' inside VMid and exits
 ```
 
 ### Options inherited from parent commands
@@ -25,5 +25,5 @@ coreos ssh
 ```
 
 ### SEE ALSO
-* [coreos](coreos.md)	 - CoreOS, on top of OS X and xhyve, made simple.
+* [corectl](corectl.md)	 - CoreOS over OSX made simple.
 

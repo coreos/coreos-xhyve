@@ -13,8 +13,6 @@
 // limitations under the License.
 //
 
-//coreos-xhyve is the simplest, and smoothest, way to test CoreOS under OSX and
-//xhyve
 package main
 
 import (
@@ -29,18 +27,18 @@ import (
 var (
 	// RootCmd ...
 	RootCmd = &cobra.Command{
-		Use:   "coreos",
-		Short: "CoreOS, on top of OS X and xhyve, made simple.",
+		Use:   "corectl",
+		Short: "CoreOS over OSX made simple.",
 		Long: fmt.Sprintf("%s\n%s",
-			"CoreOS, on top of OS X and xhyve, made simple.",
-			"❯❯❯ http://github.com/coreos/coreos-xhyve"),
+			"CoreOS over OSX made simple.",
+			"❯❯❯ http://github.com/TheNewNormal/corectl"),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			versionCommand(cmd, args)
 			return cmd.Usage()
 		},
 	}
 	versionCmd = &cobra.Command{
-		Use: "version", Short: "Show the (coreos-xhyve) version information",
+		Use: "version", Short: "Shows corectl version information",
 		Run: versionCommand,
 	}
 )
@@ -68,12 +66,12 @@ func init() {
 	// logger defaults
 	log.SetFlags(0)
 	log.SetOutput(os.Stderr)
-	log.SetPrefix("[coreos] ")
+	log.SetPrefix("[corectl] ")
 
 	// remaining defaults / startupChecks
 	SessionContext.init()
 }
 
 func versionCommand(cmd *cobra.Command, args []string) {
-	fmt.Println("coreos version", Version)
+	fmt.Println("corectl version", Version)
 }

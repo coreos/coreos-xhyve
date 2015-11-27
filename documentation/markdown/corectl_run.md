@@ -1,4 +1,4 @@
-## coreos run
+## corectl run
 
 Starts a new CoreOS instance
 
@@ -8,7 +8,7 @@ Starts a new CoreOS instance
 Starts a new CoreOS instance
 
 ```
-coreos run
+corectl run
 ```
 
 ### Options
@@ -37,5 +37,5 @@ coreos run
 ```
 
 ### SEE ALSO
-* [coreos](coreos.md)	 - CoreOS, on top of OS X and xhyve, made simple.
+* [corectl](corectl.md)	 - CoreOS over OSX made simple.
 

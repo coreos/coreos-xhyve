@@ -1,14 +1,14 @@
-## coreos version
+## corectl version
 
-Show the (coreos-xhyve) version information
+Shows corectl version information
 
 ### Synopsis
 
 
-Show the (coreos-xhyve) version information
+Shows corectl version information
 
 ```
-coreos version
+corectl version
 ```
 
 ### Options inherited from parent commands
@@ -18,5 +18,5 @@ coreos version
 ```
 
 ### SEE ALSO
-* [coreos](coreos.md)	 - CoreOS, on top of OS X and xhyve, made simple.
+* [corectl](corectl.md)	 - CoreOS over OSX made simple.
 

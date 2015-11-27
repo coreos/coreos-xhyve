@@ -1,4 +1,4 @@
-## coreos kill
+## corectl kill
 
 Halts one or more running CoreOS instances
 
@@ -8,7 +8,7 @@ Halts one or more running CoreOS instances
 Halts one or more running CoreOS instances
 
 ```
-coreos kill
+corectl kill
 ```
 
 ### Options
@@ -24,5 +24,5 @@ coreos kill
 ```
 
 ### SEE ALSO
-* [coreos](coreos.md)	 - CoreOS, on top of OS X and xhyve, made simple.
+* [corectl](corectl.md)	 - CoreOS over OSX made simple.
 

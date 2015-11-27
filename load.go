@@ -41,7 +41,7 @@ var (
 			return SessionContext.allowedToRun()
 		},
 		RunE:    loadCommand,
-		Example: `  coreos load profiles/demo.toml`,
+		Example: `  corectl load profiles/demo.toml`,
 	}
 )
 

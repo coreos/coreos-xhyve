@@ -44,7 +44,7 @@ func utilsCommand(cmd *cobra.Command, args []string) {
 
 func manCommand(cmd *cobra.Command, args []string) {
 	header := &cobra.GenManHeader{
-		Title: "coreos", Source: " ",
+		Title: "corectl", Source: " ",
 	}
 	RootCmd.GenManTree(header, SessionContext.pwd+"/documentation/man/")
 }

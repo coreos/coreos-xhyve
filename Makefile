@@ -1,25 +1,25 @@
 VERSION := $(shell git describe --abbrev=6 --dirty --always --tags)
 V := "blablabla.go"
 
-all: coreos docs
+all: corectl docs
 	@git status
 
-coreos: clean Makefile
+corectl: clean Makefile
 	@echo "package main" > $(V)
 	@echo "var Version = \"$(VERSION)\"" >> $(V)
 	@mkdir -p ./documentation/
 	godep save ./...
-	godep go build -o coreos
+	godep go build -o corectl
 	@touch $@
 
 clean:
-	@rm -rf coreos ./Godeps ./documentation/
+	@rm -rf corectl ./Godeps ./documentation/
 
-docs: coreos documentation/markdown documentation/man
+docs: corectl documentation/markdown documentation/man
 
 documentation/man: force
 	@mkdir  documentation/man
-	@./coreos utils mkMan
+	@./corectl utils mkMan
 	@for p in $$(ls documentation/man/*.1); do \
 		sed -i "s/$$(/bin/date '+%h %Y')//" "$$p" ;\
 		sed -i '/spf13\/cobra$$/d' "$$p" ;\
@@ -27,7 +27,7 @@ documentation/man: force
 
 documentation/markdown: force
 		@mkdir  documentation/markdown
-		@./coreos utils mkMkdown
+		@./corectl utils mkMkdown
 		@for p in $$(ls documentation/markdown/*.md); do \
 			sed -i '/spf13\/cobra/d' "$$p" ;\
 		done

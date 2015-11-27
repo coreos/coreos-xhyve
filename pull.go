@@ -26,7 +26,7 @@ import (
 	"path/filepath"
 	"strings"
 	// XXX
-	"github.com/AntonioMeireles/coreos-xhyve/image"
+	"github.com/TheNewNormal/corectl/image"
 
 	"github.com/blang/semver"
 	"github.com/spf13/cobra"

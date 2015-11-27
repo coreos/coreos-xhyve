@@ -3,5 +3,6 @@
 imgs
 *.img
 coreos
+corectl
 tmp.*
 blablabla.go

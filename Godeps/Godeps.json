@@ -1,5 +1,5 @@
 {
-	"ImportPath": "github.com/AntonioMeireles/coreos-xhyve",
+	"ImportPath": "github.com/AntonioMeireles/corectl",
 	"GoVersion": "go1.5.1",
 	"Packages": [
 		"./..."
@@ -9,6 +9,16 @@
 			"ImportPath": "github.com/BurntSushi/toml",
 			"Comment": "v0.1.0-21-g056c9bc",
 			"Rev": "056c9bc7be7190eaa7715723883caffa5f8fa3e4"
+		},
+		{
+			"ImportPath": "github.com/TheNewNormal/corectl/image",
+			"Comment": "v0.0.5-1-gbf1011d",
+			"Rev": "bf1011d9c6632cae74fa0613a84d8c8804f41e99"
+		},
+		{
+			"ImportPath": "github.com/TheNewNormal/corectl/uuid2ip",
+			"Comment": "v0.0.5-1-gbf1011d",
+			"Rev": "bf1011d9c6632cae74fa0613a84d8c8804f41e99"
 		},
 		{
 			"ImportPath": "github.com/blang/semver",
