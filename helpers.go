@@ -326,7 +326,7 @@ func (vm *VMInfo) isActive() bool {
 		return false
 	}
 	if p, _ := ps.FindProcess(vm.Pid); p == nil ||
-		!strings.HasPrefix(p.Executable(), "coreos") {
+		!strings.HasPrefix(p.Executable(), "corectl") {
 		clean()
 		return false
 	}
