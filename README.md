@@ -5,8 +5,8 @@
 -----------
 
  > - `xhyve`, on top of we built, is a young project, so expect bugs!
- >   You must be running OS X 10.10.3 (Yosemite) or later on a 2010
- >   or later Mac (i.e. with a CPU that supports EPT) for things to work.
+ > - You must be running OS X Yosemite, 10.10.3, or later on a 2010,
+ >   or later, Mac (i.e. one with a CPU that supports EPT) for things to work.
  > - if you use **any** version of VirtualBox prior to VirtualBox 4.3.30 then
  >   `xhyve` will crash your system either if VirtualBox is running, or had been
  >   run previously after the last reboot (see `xhyve`'s issues
@@ -27,7 +27,7 @@
 ```
 ### kickstart a CoreOS VM
 the following command will fetch the `latest` CoreOS Alpha image
-available, verify it with the build public key, add an OEM xhyve
+available, verify it with the build public key, add an OEM `xhyve`
 personality and then load it over `xhyve`.
 
 ```
@@ -53,7 +53,7 @@ Last login: Tue Aug 25 13:23:20 +0000 2015 on /dev/tty1.
 core@localhost ~ $
 ```
 you 'll find out that `/Users` is available (via NFS) already inside your VM.
-that will come handy when you come to play with docker volumes later...
+that will come handy when you come to play with `docker` volumes later...
 
 ### Usage
 ```
@@ -185,7 +185,18 @@ or ...
   ```
 - have fun!
 
+## Acknowledgements
+-  [Michael Steil](https://github.com/mist64) for his awesome
+   [xhyve](https://github.com/mist64/xhyve) lightweight OS X
+   virtualization solution
+-  [Camilo Aguilar](https://github.com/c4milo) for his
+   [xhyve](https://github.com/mist64/xhyve) golang
+   [bindings](https://github.com/hooklift/xhyve)
+-  [Brandon Philips](https://github.com/philips) who come with the
+   original, `bash` based, [coreos-xhyve](https://github.com/coreos/coreos-xhyve)
+   prototype that this project supersedes
+
 ## Contributing
-corectl is an [open source](http://opensource.org/osd) project under the
+`corectl` is an [open source](http://opensource.org/osd) project under the
 [Apache License, Version 2.0](http://opensource.org/licenses/Apache-2.0), ence
 contributions are gladly welcomed!
