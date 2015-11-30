@@ -100,10 +100,11 @@ func bootVM(vipre *viper.Viper) (err error) {
 		vm, c       = &VMInfo{}, &exec.Cmd{}
 	)
 
+	vm.PreferLocalImages = vipre.GetBool("local")
 	if vm.Channel, vm.Version, err =
 		lookupImage(normalizeChannelName(vipre.GetString("channel")),
 			normalizeVersion(vipre.GetString("version")), false,
-			vipre.GetBool("local")); err != nil {
+			vm.PreferLocalImages); err != nil {
 		return
 	}
 	if err = vm.validateNameAndUUID(vipre.GetString("name"),

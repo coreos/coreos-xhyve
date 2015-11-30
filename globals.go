@@ -37,7 +37,7 @@ type (
 		Ethernet                               []NetworkInterface
 		Storage                                storageAssets
 		InternalSSHauthKey, InternalSSHprivKey string
-		Detached                               bool
+		Detached, PreferLocalImages            bool
 		Pid                                    int
 		PublicIP                               string
 		CreatedAt                              time.Time
