@@ -37,6 +37,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/blang/semver"
 	"github.com/mitchellh/go-ps"
@@ -338,9 +339,11 @@ func (vm *VMInfo) metadataService() (endpoint string, err error) {
 		free    net.Listener
 		runOnce sync.Once
 	)
-
-	if free, err = net.Listen("tcp", "localhost:0"); err != nil {
-		return
+	// workaround OSX and/or golang weirdness...
+	for range time.Tick(500 * time.Millisecond) {
+		if free, err = net.Listen("tcp", "localhost:0"); err == nil {
+			break
+		}
 	}
 
 	mux := http.NewServeMux()
