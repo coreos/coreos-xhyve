@@ -40,21 +40,21 @@ func GuestMACfromUUID(uuid string) (mac string, err error) {
 	macC, failC := C.CString(mac), C.CString(fail)
 	var ret C.int
 
+	runtime.LockOSThread()
 	defer func() {
 		C.free(unsafe.Pointer(uuidC))
 		C.free(unsafe.Pointer(macC))
 		C.free(unsafe.Pointer(failC))
+		runtime.UnlockOSThread()
 	}()
-
-	runtime.LockOSThread()
-	defer runtime.UnlockOSThread()
 
 	if ret = C.vmnet_get_mac_address_from_uuid(uuidC,
 		(*C.char)(unsafe.Pointer(macC)),
 		(*C.char)(unsafe.Pointer(failC))); ret != 0 {
 		return mac, fmt.Errorf(C.GoString(failC))
 	}
-	return C.GoString(macC), nil
+	mac = C.GoString(macC)
+	return mac, nil
 }
 
 // GuestIPfromMAC returns the IP address that would be leased to the given MAC
