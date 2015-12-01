@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"time"
 
 	"github.com/spf13/cobra"
 )
@@ -85,7 +86,16 @@ func (vm VMInfo) halt() (err error) {
 			}
 		}
 	}
-	log.Printf("successfully halted '%s'\n", vm.Name)
+	// wait until it's _really_ dead
+	defer func() {
+		for range time.Tick(500 * time.Millisecond) {
+			if _, ee := os.FindProcess(vm.Pid); ee == nil {
+				break
+			}
+		}
+		log.Printf("successfully halted '%s'\n", vm.Name)
+	}()
+
 	return
 }
 
