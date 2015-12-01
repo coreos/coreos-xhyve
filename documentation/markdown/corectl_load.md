@@ -1,11 +1,12 @@
 ## corectl load
 
-Loads from an instrumentation file (in TOML, JSON or YAML) one or more CoreOS instances
+Loads CoreOS instances defined in an instrumentation file.
 
 ### Synopsis
 
 
-Loads from an instrumentation file (in TOML, JSON or YAML) one or more CoreOS instances
+Loads CoreOS instances defined in an instrumentation file (either in TOML, JSON or YAML format).
+VMs are always launched by alphabetical order relative to their names.
 
 ```
 corectl load

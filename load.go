@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"reflect"
+	"sort"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -29,9 +30,11 @@ import (
 
 var (
 	loadFCmd = &cobra.Command{
-		Use: "load",
-		Short: "Loads from an instrumentation file " +
-			"(in TOML, JSON or YAML) one or more CoreOS instances",
+		Use:   "load",
+		Short: "Loads CoreOS instances defined in an instrumentation file.",
+		Long: "Loads CoreOS instances defined in an instrumentation file " +
+			"(either in TOML, JSON or YAML format).\n" + "VMs are always launched " +
+			"by alphabetical order relative to their names.",
 		PreRunE: func(cmd *cobra.Command, args []string) (err error) {
 			if len(args) != 1 {
 				return fmt.Errorf("Incorrect usage: " +
@@ -47,10 +50,11 @@ var (
 
 func loadCommand(cmd *cobra.Command, args []string) (err error) {
 	var (
-		vmDefs = make(map[string]*viper.Viper)
-		f      []byte
-		def    = args[0]
-		setup  = viper.New()
+		vmDefs  = make(map[string]*viper.Viper)
+		ordered []string
+		f       []byte
+		def     = args[0]
+		setup   = viper.New()
 	)
 
 	if f, err = ioutil.ReadFile(def); err != nil {
@@ -91,10 +95,14 @@ func loadCommand(cmd *cobra.Command, args []string) (err error) {
 			vmDefs[name].Set("detached", true)
 		}
 	}
-
-	for name, defs := range vmDefs {
+	// (re)order alphabeticaly order to ensure cheap deterministic boot ordering
+	for name := range vmDefs {
+		ordered = append(ordered, name)
+	}
+	sort.Strings(ordered)
+	for _, name := range ordered {
 		fmt.Println("> booting", name)
-		if err = bootVM(defs); err != nil {
+		if err = bootVM(vmDefs[name]); err != nil {
 			return
 		}
 	}
