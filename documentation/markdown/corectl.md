@@ -20,7 +20,7 @@ corectl
 
 ### SEE ALSO
 * [corectl kill](corectl_kill.md)	 - Halts one or more running CoreOS instances
-* [corectl load](corectl_load.md)	 - Loads from an instrumentation file (in TOML, JSON or YAML) one or more CoreOS instances
+* [corectl load](corectl_load.md)	 - Loads CoreOS instances defined in an instrumentation file.
 * [corectl ls](corectl_ls.md)	 - Lists locally available CoreOS images
 * [corectl ps](corectl_ps.md)	 - Lists running CoreOS instances
 * [corectl pull](corectl_pull.md)	 - Pulls a CoreOS image from upstream
