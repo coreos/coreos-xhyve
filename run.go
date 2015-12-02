@@ -172,23 +172,39 @@ func bootVM(vipre *viper.Viper) (err error) {
 
 	go func() {
 		wg.Add(1)
-		defer func() {
-			if r := recover(); r == nil {
-				wg.Done()
-			}
-		}()
+		defer wg.Done()
+
 		if err != nil {
 			return
 		}
-		for range time.Tick(500 * time.Millisecond) {
-			vm.Pid = c.Process.Pid
-			break
-		}
 
-		for range time.Tick(500 * time.Millisecond) {
-			var e error
-			if vm.PublicIP, e =
-				uuid2ip.GuestIPfromMAC(vm.MacAddress); e == nil {
+		for {
+			select {
+			case <-time.After(2 * time.Second):
+				log.Println("Unable to grab VM's pid after 2s (!)... " +
+					"Aborting")
+				return
+			case <-time.Tick(100 * time.Millisecond):
+				vm.Pid = c.Process.Pid
+			}
+			if vm.Pid > 0 {
+				break
+			}
+		}
+		for {
+			select {
+			case <-time.After(5 * time.Second):
+				log.Println("Unable to grab VM's IP after 5s (!)... " +
+					"Aborting")
+				return
+			case <-time.Tick(250 * time.Millisecond):
+				var e error
+				if vm.PublicIP, e =
+					uuid2ip.GuestIPfromMAC(vm.MacAddress); e == nil {
+					break
+				}
+			}
+			if vm.PublicIP != "" {
 				break
 			}
 		}

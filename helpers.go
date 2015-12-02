@@ -37,7 +37,6 @@ import (
 	"strconv"
 	"strings"
 	"sync"
-	"time"
 
 	"github.com/blang/semver"
 	"github.com/mitchellh/go-ps"
@@ -312,23 +311,23 @@ func normalizeVersion(version string) string {
 }
 
 func (vm *VMInfo) isActive() bool {
-	clean := func() {
-		staled := filepath.Join(SessionContext.runDir, vm.UUID)
-		if SessionContext.debug {
-			log.Println("removing staled", staled)
-		}
-
-		if e := os.RemoveAll(staled); e != nil {
-			log.Println(e)
-		}
-	}
+	// clean := func() {
+	// 	staled := filepath.Join(SessionContext.runDir, vm.UUID)
+	// 	if SessionContext.debug {
+	// 		log.Println("removing staled", staled)
+	// 	}
+	//
+	// 	if e := os.RemoveAll(staled); e != nil {
+	// 		log.Println(e)
+	// 	}
+	// }
 	if vm.Pid < 1 {
-		clean()
+		// clean()
 		return false
 	}
 	if p, _ := ps.FindProcess(vm.Pid); p == nil ||
 		!strings.HasPrefix(p.Executable(), "corectl") {
-		clean()
+		// clean()
 		return false
 	}
 	return true
@@ -336,19 +335,12 @@ func (vm *VMInfo) isActive() bool {
 
 func (vm *VMInfo) metadataService() (endpoint string, err error) {
 	var (
-		free     net.Listener
-		runOnce  sync.Once
-		freePort = func() (net.Listener, error) {
-			defer recover()
-			return net.Listen("tcp", "localhost:0")
-		}
+		free    net.Listener
+		runOnce sync.Once
 	)
 
-	// workaround OSX and/or golang weirdness...
-	for range time.Tick(500 * time.Millisecond) {
-		if free, err = freePort(); err == nil {
-			break
-		}
+	if free, err = net.Listen("tcp", "127.0.0.1:0"); err != nil {
+		return
 	}
 
 	mux := http.NewServeMux()

@@ -87,22 +87,23 @@ func (vm VMInfo) halt() (err error) {
 			}
 		}
 	}
-	// wait until it's _really_ dead
-	defer func() {
-		leftover := filepath.Join(SessionContext.runDir, vm.UUID)
-
-		for range time.Tick(500 * time.Millisecond) {
+	// wait until it's _really_ dead, but not forever
+	for {
+		select {
+		case <-time.After(3 * time.Second):
+			return fmt.Errorf("VM didn't shutdown normally after 3s (!)... ")
+		case <-time.Tick(100 * time.Millisecond):
 			if _, ee := os.FindProcess(vm.Pid); ee == nil {
-				break
+				if e :=
+					os.RemoveAll(filepath.Join(SessionContext.runDir,
+						vm.UUID)); e != nil {
+					log.Println(e.Error())
+				}
+				log.Printf("successfully halted '%s'\n", vm.Name)
+				return
 			}
 		}
-		if e := os.RemoveAll(leftover); e != nil {
-			log.Println(e.Error())
-		}
-		log.Printf("successfully halted '%s'\n", vm.Name)
-	}()
-
-	return
+	}
 }
 
 func init() {
