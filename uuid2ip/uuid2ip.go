@@ -26,9 +26,9 @@ import "C"
 import (
 	"fmt"
 	"io/ioutil"
+	"net"
 	"os"
 	"regexp"
-	"runtime"
 	"strings"
 	"unsafe"
 )
@@ -36,25 +36,18 @@ import (
 // GuestMACfromUUID returns the MAC address that will assembled from the given
 // UUID by xhyve,  needs to be called before xhyve actual invocation
 func GuestMACfromUUID(uuid string) (mac string, err error) {
-	fail, uuidC := "", C.CString(uuid)
-	macC, failC := C.CString(mac), C.CString(fail)
-	var ret C.int
-
-	runtime.LockOSThread()
-	defer func() {
-		C.free(unsafe.Pointer(uuidC))
-		C.free(unsafe.Pointer(macC))
-		C.free(unsafe.Pointer(failC))
-		runtime.UnlockOSThread()
-	}()
-
-	if ret = C.vmnet_get_mac_address_from_uuid(uuidC,
-		(*C.char)(unsafe.Pointer(macC)),
-		(*C.char)(unsafe.Pointer(failC))); ret != 0 {
-		return mac, fmt.Errorf(C.GoString(failC))
+	var (
+		hw    net.HardwareAddr
+		uuidC = C.CString(uuid)
+	)
+	mac = C.GoString(C.vmnet_get_mac_address_from_uuid(uuidC))
+	C.free(unsafe.Pointer(uuidC))
+	if mac == "" {
+		err = fmt.Errorf("Could not get a MAC address from %s", uuid)
+	} else if hw, err = net.ParseMAC(mac); err == nil {
+		mac = hw.String()
 	}
-	mac = C.GoString(macC)
-	return mac, nil
+	return
 }
 
 // GuestIPfromMAC returns the IP address that would be leased to the given MAC
