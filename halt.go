@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -88,10 +89,15 @@ func (vm VMInfo) halt() (err error) {
 	}
 	// wait until it's _really_ dead
 	defer func() {
+		leftover := filepath.Join(SessionContext.runDir, vm.UUID)
+
 		for range time.Tick(500 * time.Millisecond) {
 			if _, ee := os.FindProcess(vm.Pid); ee == nil {
 				break
 			}
+		}
+		if e := os.RemoveAll(leftover); e != nil {
+			log.Println(e.Error())
 		}
 		log.Printf("successfully halted '%s'\n", vm.Name)
 	}()

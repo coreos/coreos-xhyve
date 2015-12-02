@@ -96,8 +96,8 @@ func xhyveCommand(cmd *cobra.Command, args []string) (err error) {
 
 func bootVM(vipre *viper.Viper) (err error) {
 	var (
-		mac, rundir string
-		vm, c       = &VMInfo{}, &exec.Cmd{}
+		rundir string
+		vm, c  = &VMInfo{}, &exec.Cmd{}
 	)
 
 	vm.PreferLocalImages = vipre.GetBool("local")
@@ -170,10 +170,6 @@ func bootVM(vipre *viper.Viper) (err error) {
 		return
 	}
 
-	if mac, err = uuid2ip.GuestMACfromUUID(vm.UUID); err != nil {
-		return
-	}
-
 	go func() {
 		wg.Add(1)
 		defer func() {
@@ -189,9 +185,10 @@ func bootVM(vipre *viper.Viper) (err error) {
 			break
 		}
 
-		for range time.Tick(100 * time.Millisecond) {
+		for range time.Tick(500 * time.Millisecond) {
 			var e error
-			if vm.PublicIP, e = uuid2ip.GuestIPfromMAC(mac); e == nil {
+			if vm.PublicIP, e =
+				uuid2ip.GuestIPfromMAC(vm.MacAddress); e == nil {
 				break
 			}
 		}
@@ -415,7 +412,7 @@ func (vm *VMInfo) validateNameAndUUID(name, xxid string) (err error) {
 	if xxid == "random" {
 		vm.UUID = uuid.NewV4().String()
 	} else {
-		if _, err := uuid.FromString(xxid); err != nil {
+		if _, err = uuid.FromString(xxid); err != nil {
 			log.Printf("%s not a valid UUID as it doesn't follow RFC 4122. %s\n",
 				xxid, "    using a randomly generated one")
 			vm.UUID = uuid.NewV4().String()
@@ -423,6 +420,17 @@ func (vm *VMInfo) validateNameAndUUID(name, xxid string) (err error) {
 			vm.UUID = xxid
 		}
 	}
+	for {
+		if vm.MacAddress, err = uuid2ip.GuestMACfromUUID(vm.UUID); err == nil {
+			break
+		}
+		if xxid != "random" {
+			log.Printf("unable to guess the MAC Address from the provided "+
+				"UUID (%s). Using a randomly generated one one\n", xxid)
+		}
+		vm.UUID = uuid.NewV4().String()
+	}
+
 	if name == "" {
 		vm.Name = vm.UUID
 	} else {

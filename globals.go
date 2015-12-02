@@ -31,7 +31,7 @@ type (
 	VMInfo struct {
 		Name, Channel, Version                 string
 		Cpus, Memory                           int
-		UUID                                   string
+		UUID, MacAddress                       string
 		CloudConfig, CClocation, SSHkey, Extra string `json:",omitempty"`
 		Root                                   int
 		Ethernet                               []NetworkInterface

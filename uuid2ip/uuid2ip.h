@@ -1,3 +1,4 @@
+
 /*-
  * Copyright (c) 2002,2005 Marcel Moolenaar
  * Copyright (c) 2002 Hiten Mahesh Pandya
@@ -26,10 +27,9 @@
  *
  * $FreeBSD$
  */
-
- /* originally at https://github.com/ailispaw/boot2docker-xhyve/uuid2ip and
-  * slightly refactored to better fit the golang bindings
-  * github.com/AntonioMeireles/coreos-xhyve/uuid2ip
+ /* originally at github.com/zchee/docker-machine-xhyve/blob/embed-xhyve/vmnet/
+  * and slightly refactored to better fit the golang bindings
+  * github.com/TheNewNormal/coreos-xhyve/uuid2ip
   */
 
 #pragma once

@@ -45,19 +45,18 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* originally at https://github.com/ailispaw/boot2docker-xhyve/uuid2ip and
- * slightly refactored to better fit the golang bindings
- * github.com/AntonioMeireles/coreos-xhyve/uuid2ip
- */
-
+ /* originally at github.com/zchee/docker-machine-xhyve/blob/embed-xhyve/vmnet/
+  * and slightly refactored to better fit the golang bindings
+  * github.com/TheNewNormal/coreos-xhyve/uuid2ip
+  */
 #include <stdio.h>
 
 #include <vmnet/vmnet.h>
 
 #include "uuid2ip.h"
 
-static int
-vmnet_get_mac_address_from_uuid(char *guest_uuid_str, char *mac, char *err) {
+static char*
+vmnet_get_mac_address_from_uuid(char *guest_uuid_str) {
 /*
  * from vmn_create() in https://github.com/mist64/xhyve/blob/master/src/pci_virtio_vmnet.c
  */
@@ -65,6 +64,7 @@ vmnet_get_mac_address_from_uuid(char *guest_uuid_str, char *mac, char *err) {
   uuid_t uuid;
   __block interface_ref iface;
   __block vmnet_return_t iface_status;
+  __block char* mac = malloc(18);
   dispatch_semaphore_t iface_created, iface_stopped;
   dispatch_queue_t if_create_q, if_stop_q;
   uint32_t uuid_status;
@@ -74,8 +74,8 @@ vmnet_get_mac_address_from_uuid(char *guest_uuid_str, char *mac, char *err) {
 
   uuid_from_string(guest_uuid_str, &uuid, &uuid_status);
   if (uuid_status != uuid_s_ok) {
-    strcpy(err, "Invalid UUID");
-    return -1;
+    fprintf(stderr, "Invalid UUID\n");
+    return NULL;
   }
 
   xpc_dictionary_set_uuid(interface_desc, vmnet_interface_id_key, uuid);
@@ -94,7 +94,10 @@ vmnet_get_mac_address_from_uuid(char *guest_uuid_str, char *mac, char *err) {
       dispatch_semaphore_signal(iface_created);
       return;
     }
-    strcpy(mac, xpc_dictionary_get_string(interface_param, vmnet_mac_address_key));
+
+    //printf("%s\n", xpc_dictionary_get_string(interface_param, vmnet_mac_address_key));
+    const char *macStr = xpc_dictionary_get_string(interface_param, vmnet_mac_address_key);
+    strcpy(mac, macStr);
 
     dispatch_semaphore_signal(iface_created);
   });
@@ -103,9 +106,11 @@ vmnet_get_mac_address_from_uuid(char *guest_uuid_str, char *mac, char *err) {
   dispatch_release(if_create_q);
 
   if (iface == NULL || iface_status != VMNET_SUCCESS) {
-    strcpy(err, "virtio_net: Could not create vmnet interface, "
-      "permission denied or no entitlement?");
-    return -1;
+    // XXX supress noise in this cery specific case
+    // XXX understand some day why some random UUIDs induce this...
+    // fprintf(stderr, "virtio_net: Could not create vmnet interface, "
+    //   "permission denied or no entitlement?\n");
+    return NULL;
   }
 
   iface_status = 0;
@@ -125,9 +130,10 @@ vmnet_get_mac_address_from_uuid(char *guest_uuid_str, char *mac, char *err) {
   dispatch_release(if_stop_q);
 
   if (iface_status != VMNET_SUCCESS) {
-    strcpy(err, "virtio_net: Could not stop vmnet interface, "
-      "permission denied or no entitlement?");
-    return -1;
+    fprintf(stderr, "virtio_net: Could not stop vmnet interface, "
+      "permission denied or no entitlement?\n");
+    return NULL;
   }
-  return 0;
+
+  return mac;
 }

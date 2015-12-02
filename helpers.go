@@ -336,12 +336,17 @@ func (vm *VMInfo) isActive() bool {
 
 func (vm *VMInfo) metadataService() (endpoint string, err error) {
 	var (
-		free    net.Listener
-		runOnce sync.Once
+		free     net.Listener
+		runOnce  sync.Once
+		freePort = func() (net.Listener, error) {
+			defer recover()
+			return net.Listen("tcp", "localhost:0")
+		}
 	)
+
 	// workaround OSX and/or golang weirdness...
 	for range time.Tick(500 * time.Millisecond) {
-		if free, err = net.Listen("tcp", "localhost:0"); err == nil {
+		if free, err = freePort(); err == nil {
 			break
 		}
 	}
