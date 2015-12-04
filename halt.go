@@ -68,42 +68,52 @@ func killCommand(cmd *cobra.Command, args []string) (err error) {
 }
 
 func (vm VMInfo) halt() (err error) {
-	var sshSession *sshClient
-
-	if sshSession, err = vm.startSSHsession(); err != nil {
-		return
-	}
-	defer sshSession.close()
-	if e := sshSession.executeRemoteCommand("sudo sync;sudo halt"); e != nil {
-		// ssh messed up for some reason or target has no IP
-		log.Printf("couldn't ssh to %v (%v)...\n", vm.Name, e)
-		if canKill := SessionContext.allowedToRun(); canKill != nil {
-			return canKill
-		}
-		if p, ee := os.FindProcess(vm.Pid); ee == nil {
-			log.Println("hard kill...")
-			if err = p.Kill(); err != nil {
-				return
+	var (
+		sshSession *sshClient
+		command    = "sudo sync;sudo halt"
+		hardKill   = func(e error) (err error) {
+			if e != nil {
+				// ssh messed up for some reason or target has no IP
+				log.Printf("couldn't ssh to %v (%v)...\n", vm.Name, e)
+				if canKill := SessionContext.allowedToRun(); canKill != nil {
+					return canKill
+				}
+				if p, ee := os.FindProcess(vm.Pid); ee == nil {
+					log.Println("hard kill...")
+					if err = p.Kill(); err != nil {
+						return
+					}
+				}
 			}
+			return
+		}
+	)
+	if sshSession, err = vm.startSSHsession(); err != nil {
+		if err = hardKill(err); err != nil {
+			return
+		}
+	} else {
+		defer sshSession.close()
+		if err =
+			hardKill(sshSession.executeRemoteCommand(command)); err != nil {
+			return
 		}
 	}
 	// wait until it's _really_ dead, but not forever
-	for {
-		select {
-		case <-time.After(3 * time.Second):
-			return fmt.Errorf("VM didn't shutdown normally after 3s (!)... ")
-		case <-time.Tick(100 * time.Millisecond):
-			if _, ee := os.FindProcess(vm.Pid); ee == nil {
-				if e :=
-					os.RemoveAll(filepath.Join(SessionContext.runDir,
-						vm.UUID)); e != nil {
-					log.Println(e.Error())
-				}
-				log.Printf("successfully halted '%s'\n", vm.Name)
-				return
+	select {
+	case <-time.After(3 * time.Second):
+		err = fmt.Errorf("VM didn't shutdown normally after 3s (!)... ")
+	case <-time.Tick(100 * time.Millisecond):
+		if _, ee := os.FindProcess(vm.Pid); ee == nil {
+			if e :=
+				os.RemoveAll(filepath.Join(SessionContext.runDir,
+					vm.UUID)); e != nil {
+				log.Println(e.Error())
 			}
+			log.Printf("successfully halted '%s'\n", vm.Name)
 		}
 	}
+	return
 }
 
 func init() {
