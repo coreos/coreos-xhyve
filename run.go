@@ -100,6 +100,8 @@ func bootVM(vipre *viper.Viper) (err error) {
 		vm, c  = &VMInfo{}, &exec.Cmd{}
 	)
 
+	vm.publicIP = make(chan string)
+
 	vm.PreferLocalImages = vipre.GetBool("local")
 	if vm.Channel, vm.Version, err =
 		lookupImage(normalizeChannelName(vipre.GetString("channel")),
@@ -171,46 +173,24 @@ func bootVM(vipre *viper.Viper) (err error) {
 	}
 
 	go func() {
-		wg.Add(1)
-		defer wg.Done()
-
-		if err != nil {
+		select {
+		case <-time.After(15 * time.Second):
+			log.Println("Unable to grab VM's pid and IP after 15s (!)... " +
+				"Aborting")
 			return
-		}
-
-		for {
+		case <-time.Tick(100 * time.Millisecond):
+			vm.Pid = c.Process.Pid
 			select {
-			case <-time.After(2 * time.Second):
-				log.Println("Unable to grab VM's pid after 2s (!)... " +
-					"Aborting")
-				return
-			case <-time.Tick(100 * time.Millisecond):
-				vm.Pid = c.Process.Pid
-			}
-			if vm.Pid > 0 {
-				break
+			case ip := <-vm.publicIP:
+				vm.PublicIP = ip
+				vm.storeConfig()
+				close(vm.publicIP)
 			}
 		}
-		for {
-			select {
-			case <-time.After(5 * time.Second):
-				log.Println("Unable to grab VM's IP after 5s (!)... " +
-					"Aborting")
-				return
-			case <-time.Tick(250 * time.Millisecond):
-				var e error
-				if vm.PublicIP, e =
-					uuid2ip.GuestIPfromMAC(vm.MacAddress); e == nil {
-					break
-				}
-			}
-			if vm.PublicIP != "" {
-				break
-			}
-		}
-		vm.storeConfig()
 	}()
+
 	defer func() {
+		wg.Wait()
 		if vm.Detached && err == nil {
 			log.Printf("started '%s' in background with IP %v and PID %v\n",
 				vm.Name, vm.PublicIP, c.Process.Pid)
@@ -226,7 +206,6 @@ func bootVM(vipre *viper.Viper) (err error) {
 		return fmt.Errorf("Aborting: unable to start in background. (%v)", err)
 	}
 
-	wg.Wait()
 	// usersDir.unshare()
 	return
 }

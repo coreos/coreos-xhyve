@@ -41,6 +41,7 @@ type (
 		Pid                                    int
 		PublicIP                               string
 		CreatedAt                              time.Time
+		publicIP                               chan string
 	}
 	// NetworkInterface ...
 	NetworkInterface struct {
