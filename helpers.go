@@ -311,23 +311,11 @@ func normalizeVersion(version string) string {
 }
 
 func (vm *VMInfo) isActive() bool {
-	// clean := func() {
-	// 	staled := filepath.Join(SessionContext.runDir, vm.UUID)
-	// 	if SessionContext.debug {
-	// 		log.Println("removing staled", staled)
-	// 	}
-	//
-	// 	if e := os.RemoveAll(staled); e != nil {
-	// 		log.Println(e)
-	// 	}
-	// }
 	if vm.Pid < 1 {
-		// clean()
 		return false
 	}
 	if p, _ := ps.FindProcess(vm.Pid); p == nil ||
 		!strings.HasPrefix(p.Executable(), "corectl") {
-		// clean()
 		return false
 	}
 	return true
@@ -335,72 +323,65 @@ func (vm *VMInfo) isActive() bool {
 
 func (vm *VMInfo) metadataService() (endpoint string, err error) {
 	var (
-		free    net.Listener
-		runOnce sync.Once
+		free                           net.Listener
+		sentCC, sentSSHk, foundGuestIP sync.Once
+		mux, root                      = http.NewServeMux(), "/" + vm.Name
+		rIP                            = func(s string) string {
+			return strings.Split(s, ":")[0]
+		}
+		isAllowed = func(origin string, w http.ResponseWriter) bool {
+			if strings.HasPrefix(origin, "192.168.64.") {
+				foundGuestIP.Do(func() {
+					vm.publicIP <- origin
+				})
+				w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+				w.WriteHeader(http.StatusOK)
+				return true
+			}
+			w.WriteHeader(http.StatusPreconditionFailed)
+			w.Write(nil)
+			return false
+		}
 	)
 
 	if free, err = net.Listen("tcp", "127.0.0.1:0"); err != nil {
 		return
 	}
 
-	mux := http.NewServeMux()
-	root := "/" + vm.Name
-
 	wg.Add(1)
 
 	if vm.CloudConfig != "" && vm.CClocation == Local {
-		var runOnceII sync.Once
 		var txt []byte
 		if txt, err = ioutil.ReadFile(vm.CloudConfig); err != nil {
 			return
 		}
 		wg.Add(1)
-		ccHandler := func(w http.ResponseWriter, r *http.Request) {
-			origin := r.RemoteAddr
-			if strings.HasPrefix(origin, "192.168.64.") {
-				w.Header().Set("Content-Type", "text/plain; charset=utf-8")
-				w.WriteHeader(http.StatusOK)
-				w.Write(txt)
-				runOnceII.Do(func() { wg.Done() })
-				return
+
+		mux.HandleFunc(root+"/cloud-config",
+			func(w http.ResponseWriter, r *http.Request) {
+				if isAllowed(rIP(r.RemoteAddr), w) {
+					w.Write(txt)
+					sentCC.Do(func() { wg.Done() })
+				}
+			})
+	}
+
+	mux.HandleFunc(root+"/sshKey",
+		func(w http.ResponseWriter, r *http.Request) {
+			if isAllowed(rIP(r.RemoteAddr), w) {
+				w.Write([]byte(vm.InternalSSHauthKey))
+				sentSSHk.Do(func() { wg.Done() })
 			}
-			w.WriteHeader(http.StatusPreconditionFailed)
-			w.Write(nil)
-		}
-		mux.HandleFunc(filepath.Join(root, "/", "cloud-config"), ccHandler)
-	}
-	commHandler := func(w http.ResponseWriter, r *http.Request) {
-		origin := r.RemoteAddr
-		if strings.HasPrefix(origin, "192.168.64.") {
-			w.Header().Set("Content-Type", "text/plain; charset=utf-8")
-			w.WriteHeader(http.StatusOK)
-			w.Write([]byte(vm.InternalSSHauthKey))
-			runOnce.Do(func() { wg.Done() })
-			return
-		}
-		w.WriteHeader(http.StatusPreconditionFailed)
-		w.Write(nil)
-	}
-	hstHandler := func(w http.ResponseWriter, r *http.Request) {
-		origin := r.RemoteAddr
-		if strings.HasPrefix(origin, "192.168.64.") {
-			w.Header().Set("Content-Type", "text/plain; charset=utf-8")
-			w.WriteHeader(http.StatusOK)
-			w.Write([]byte(vm.Name))
-			return
-		}
-		w.WriteHeader(http.StatusPreconditionFailed)
-		w.Write(nil)
-	}
-
-	mux.HandleFunc(root+"/sshKey", commHandler)
-	mux.HandleFunc(root+"/hostname", hstHandler)
-
-	prt := fmt.Sprintf(":%v", free.Addr().(*net.TCPAddr).Port)
-	endpoint = fmt.Sprintf("http://192.168.64.1%v%v", prt, root)
+		})
+	mux.HandleFunc(root+"/hostname",
+		func(w http.ResponseWriter, r *http.Request) {
+			if isAllowed(rIP(r.RemoteAddr), w) {
+				w.Write([]byte(vm.Name))
+			}
+		})
 
 	srv := &http.Server{
-		Addr:    prt,
+		Addr:    fmt.Sprintf(":%v", free.Addr().(*net.TCPAddr).Port),
 		Handler: mux,
 	}
 	go func() {
@@ -408,5 +389,5 @@ func (vm *VMInfo) metadataService() (endpoint string, err error) {
 		srv.ListenAndServe()
 	}()
 
-	return
+	return fmt.Sprintf("http://192.168.64.1%v%v", srv.Addr, root), err
 }
