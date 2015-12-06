@@ -28,6 +28,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"syscall"
 	"time"
 
 	"github.com/TheNewNormal/corectl/uuid2ip"
@@ -203,6 +204,7 @@ func bootVM(vipre *viper.Viper) (err error) {
 	}
 
 	if err = c.Start(); err != nil {
+		c.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
 		return fmt.Errorf("Aborting: unable to start in background. (%v)", err)
 	}
 

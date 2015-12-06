@@ -17,10 +17,14 @@ package main
 
 import (
 	"fmt"
+	"io"
+	"log"
 	"os"
 	"strings"
 	"time"
 
+	"github.com/pkg/sftp"
+	"github.com/rakyll/pb"
 	"github.com/spf13/cobra"
 	"golang.org/x/crypto/ssh"
 	"golang.org/x/crypto/ssh/terminal"
@@ -34,7 +38,7 @@ var (
 		PreRunE: func(cmd *cobra.Command, args []string) (err error) {
 			vipre.BindPFlags(cmd.Flags())
 			if len(args) < 1 {
-				return fmt.Errorf("This command requires either at least " +
+				return fmt.Errorf("This command requires at least " +
 					"one argument to work ")
 			}
 			return
@@ -42,6 +46,22 @@ var (
 		RunE: sshCommand,
 		Example: `  corectl ssh VMid                 // logins into VMid
   corectl ssh VMid "some commands" // runs 'some commands' inside VMid and exits`,
+	}
+	scpCmd = &cobra.Command{
+		Use:     "put",
+		Aliases: []string{"copy", "cp", "scp"},
+		Short:   "copy file to inside VM",
+		PreRunE: func(cmd *cobra.Command, args []string) (err error) {
+			vipre.BindPFlags(cmd.Flags())
+			if len(args) < 2 {
+				return fmt.Errorf("This command requires at least " +
+					"two argument to work ")
+			}
+			return
+		},
+		RunE: scpCommand,
+		Example: `  // copies 'filePath' into '/destinationPath' inside VMid
+  corectl put filePath VMid:/destinationPath`,
 	}
 )
 
@@ -133,7 +153,6 @@ func (vm VMInfo) startSSHsession() (c *sshClient, err error) {
 }
 
 func (c *sshClient) executeRemoteCommand(run string) (err error) {
-
 	if err = c.session.Run(run); err != nil && !strings.HasSuffix(err.Error(),
 		"exited without exit status or exit signal") {
 		return
@@ -166,6 +185,69 @@ func vmInfo(id string) (vm VMInfo, err error) {
 	return vm, fmt.Errorf("'%s' not found, or dead", id)
 }
 
+func (c *sshClient) sCopy(source, destination, target string) (err error) {
+	var (
+		ftp         *sftp.Client
+		src         *os.File
+		srcS, destS os.FileInfo
+		dest        *sftp.File
+		bar         *pb.ProgressBar
+	)
+
+	if ftp, err = sftp.NewClient(c.conn); err != nil {
+		return
+	}
+	defer ftp.Close()
+	log.Println("uploading '" + source + "' to '" +
+		target + ":" + destination + "'")
+
+	if src, err = os.Open(source); err != nil {
+		return
+	}
+	defer src.Close()
+	if srcS, err = os.Stat(source); err != nil {
+		return
+	}
+
+	if dest, err = ftp.Create(destination); err != nil {
+        // XXX
+		return
+	}
+	defer dest.Close()
+	bar = pb.New(int(srcS.Size())).SetUnits(pb.U_BYTES)
+	bar.Start()
+	defer bar.Finish()
+	if _, err = io.Copy(dest, src); err != nil {
+		return
+	}
+
+	if destS, err = ftp.Stat(destination); err != nil {
+		return
+	}
+	if srcS.Size() != destS.Size() {
+		err = fmt.Errorf("something went wrong. " +
+			"destination file size != from sources'")
+	}
+	return
+}
+
+func scpCommand(cmd *cobra.Command, args []string) (err error) {
+	var (
+		session, vm                 = &sshClient{}, VMInfo{}
+		split                       = strings.Split(args[1], ":")
+		source, destination, target = args[0], split[1], split[0]
+	)
+	if vm, err = vmInfo(target); err != nil {
+		return
+	}
+	if session, err = vm.startSSHsession(); err != nil {
+		return
+	}
+	defer session.close()
+	return session.sCopy(source, destination, target)
+}
+
 func init() {
 	RootCmd.AddCommand(sshCmd)
+	RootCmd.AddCommand(scpCmd)
 }

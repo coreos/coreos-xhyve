@@ -25,7 +25,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	// XXX
+
 	"github.com/TheNewNormal/corectl/image"
 
 	"github.com/blang/semver"
