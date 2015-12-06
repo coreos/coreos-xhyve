@@ -1,0 +1,43 @@
+.TH "corectl" "1" "" " " ""  ""
+
+
+.SH NAME
+.PP
+corectl\-put \- copy file to inside VM
+
+
+.SH SYNOPSIS
+.PP
+\fBcorectl put\fP [OPTIONS]
+
+
+.SH DESCRIPTION
+.PP
+copy file to inside VM
+
+
+.SH OPTIONS INHERITED FROM PARENT COMMANDS
+.PP
+\fB\-\-debug\fP[=false]
+    adds extra verbosity, and options, for debugging purposes and/or power users
+
+
+.SH EXAMPLE
+.PP
+.RS
+
+.nf
+  // copies 'filePath' into '/destinationPath' inside VMid
+  corectl put filePath VMid:/destinationPath
+
+.fi
+.RE
+
+
+.SH SEE ALSO
+.PP
+\fBcorectl(1)\fP
+
+
+.SH HISTORY
+.PP

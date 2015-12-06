@@ -1,6 +1,6 @@
 {
-	"ImportPath": "github.com/TheNewNormal/corectl",
-	"GoVersion": "go1.5.1",
+	"ImportPath": "github.com/AntonioMeireles/corectl",
+	"GoVersion": "go1.5.2",
 	"Packages": [
 		"./..."
 	],
@@ -9,6 +9,16 @@
 			"ImportPath": "github.com/BurntSushi/toml",
 			"Comment": "v0.1.0-21-g056c9bc",
 			"Rev": "056c9bc7be7190eaa7715723883caffa5f8fa3e4"
+		},
+		{
+			"ImportPath": "github.com/TheNewNormal/corectl/image",
+			"Comment": "v0.0.10",
+			"Rev": "a117e5d7c645569cc52f58aad9fff7cf1cda89c6"
+		},
+		{
+			"ImportPath": "github.com/TheNewNormal/corectl/uuid2ip",
+			"Comment": "v0.0.10",
+			"Rev": "a117e5d7c645569cc52f58aad9fff7cf1cda89c6"
 		},
 		{
 			"ImportPath": "github.com/blang/semver",
@@ -34,6 +44,10 @@
 			"Rev": "76626ae9c91c4f2a10f34cad8ce83ea42c93bb75"
 		},
 		{
+			"ImportPath": "github.com/kr/fs",
+			"Rev": "2788f0dbd16903de03cb8186e5c7d97b69ad387b"
+		},
+		{
 			"ImportPath": "github.com/kr/pretty",
 			"Comment": "go.weekly.2011-12-22-27-ge6ac2fc",
 			"Rev": "e6ac2fc51e89a3249e82157fa0bb7a18ef9dd5bb"
@@ -54,6 +68,10 @@
 		{
 			"ImportPath": "github.com/mitchellh/mapstructure",
 			"Rev": "281073eb9eb092240d33ef253c404f1cca550309"
+		},
+		{
+			"ImportPath": "github.com/pkg/sftp",
+			"Rev": "cbc2879daf7b8cff8faff8c509e4c727ba7291d5"
 		},
 		{
 			"ImportPath": "github.com/rakyll/pb",
