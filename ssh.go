@@ -20,6 +20,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -208,9 +209,12 @@ func (c *sshClient) sCopy(source, destination, target string) (err error) {
 	if srcS, err = os.Stat(source); err != nil {
 		return
 	}
-
+	if _, err = ftp.ReadDir(filepath.Dir(destination)); err != nil {
+		err = fmt.Errorf("unable to upload %v as parent %v "+
+			"not in target", source, filepath.Dir(destination))
+		return
+	}
 	if dest, err = ftp.Create(destination); err != nil {
-        // XXX
 		return
 	}
 	defer dest.Close()
