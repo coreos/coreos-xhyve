@@ -28,7 +28,6 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
-	"syscall"
 	"time"
 
 	"github.com/TheNewNormal/corectl/uuid2ip"
@@ -175,7 +174,7 @@ func bootVM(vipre *viper.Viper) (err error) {
 
 	go func() {
 		select {
-		case <-time.After(15 * time.Second):
+		case <-time.After(45 * time.Second):
 			log.Println("Unable to grab VM's pid and IP after 15s (!)... " +
 				"Aborting")
 			return
@@ -204,7 +203,6 @@ func bootVM(vipre *viper.Viper) (err error) {
 	}
 
 	if err = c.Start(); err != nil {
-		c.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
 		return fmt.Errorf("Aborting: unable to start in background. (%v)", err)
 	}
 
@@ -408,24 +406,23 @@ func (vm *VMInfo) atomic() (err error) {
 func (vm *VMInfo) validateNameAndUUID(name, xxid string) (err error) {
 	if xxid == "random" {
 		vm.UUID = uuid.NewV4().String()
+	} else if _, err = uuid.FromString(xxid); err != nil {
+		log.Printf("%s not a valid UUID as it doesn't follow RFC 4122. %s\n",
+			xxid, "    using a randomly generated one")
+		vm.UUID = uuid.NewV4().String()
 	} else {
-		if _, err = uuid.FromString(xxid); err != nil {
-			log.Printf("%s not a valid UUID as it doesn't follow RFC 4122. %s\n",
-				xxid, "    using a randomly generated one")
-			vm.UUID = uuid.NewV4().String()
-		} else {
-			vm.UUID = xxid
-		}
+		vm.UUID = xxid
 	}
 	for {
-		if vm.MacAddress, err = uuid2ip.GuestMACfromUUID(vm.UUID); err == nil {
+		if vm.MacAddress, err = uuid2ip.GuestMACfromUUID(vm.UUID); err != nil {
+			if xxid != "random" {
+				log.Printf("unable to guess the MAC Address from the provided "+
+					"UUID (%s). Using a randomly generated one one\n",	xxid)
+			}
+			vm.UUID = uuid.NewV4().String()
+		} else {
 			break
 		}
-		if xxid != "random" {
-			log.Printf("unable to guess the MAC Address from the provided "+
-				"UUID (%s). Using a randomly generated one one\n", xxid)
-		}
-		vm.UUID = uuid.NewV4().String()
 	}
 
 	if name == "" {

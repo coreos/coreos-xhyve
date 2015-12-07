@@ -39,8 +39,9 @@ import (
 	"sync"
 
 	"github.com/blang/semver"
-	"github.com/mitchellh/go-ps"
 	"github.com/rakyll/pb"
+	// until github.com/mitchellh/go-ps consumes it
+	"github.com/yeonsh/go-ps"
 	"golang.org/x/crypto/openpgp"
 	"golang.org/x/crypto/openpgp/clearsign"
 	"golang.org/x/crypto/ssh"
@@ -311,11 +312,8 @@ func normalizeVersion(version string) string {
 }
 
 func (vm *VMInfo) isActive() bool {
-	if vm.Pid < 1 {
-		return false
-	}
 	if p, _ := ps.FindProcess(vm.Pid); p == nil ||
-		!strings.HasPrefix(p.Executable(), "corectl") {
+		!strings.HasSuffix(p.Executable(), "corectl") {
 		return false
 	}
 	return true

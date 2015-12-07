@@ -1,6 +1,6 @@
 {
 	"ImportPath": "github.com/TheNewNormal/corectl",
-	"GoVersion": "go1.5.1",
+	"GoVersion": "go1.5.2",
 	"Packages": [
 		"./..."
 	],
@@ -9,6 +9,16 @@
 			"ImportPath": "github.com/BurntSushi/toml",
 			"Comment": "v0.1.0-21-g056c9bc",
 			"Rev": "056c9bc7be7190eaa7715723883caffa5f8fa3e4"
+		},
+		{
+			"ImportPath": "github.com/TheNewNormal/corectl/image",
+			"Comment": "v0.0.12",
+			"Rev": "a7ab6d77d94e3ac3fe9d6bd05f5d4144290b69f6"
+		},
+		{
+			"ImportPath": "github.com/TheNewNormal/corectl/uuid2ip",
+			"Comment": "v0.0.12",
+			"Rev": "a7ab6d77d94e3ac3fe9d6bd05f5d4144290b69f6"
 		},
 		{
 			"ImportPath": "github.com/blang/semver",
@@ -50,10 +60,6 @@
 			"ImportPath": "github.com/magiconair/properties",
 			"Comment": "v1.5.5",
 			"Rev": "337395e44efb4affc8bf11971e22acbd4e27a32d"
-		},
-		{
-			"ImportPath": "github.com/mitchellh/go-ps",
-			"Rev": "e6c6068076470196af082b1ff896e24a51a87b2a"
 		},
 		{
 			"ImportPath": "github.com/mitchellh/mapstructure",
@@ -99,6 +105,10 @@
 		{
 			"ImportPath": "github.com/spf13/viper",
 			"Rev": "e37b56e207dda4d79b9defe0548e960658ee8b6b"
+		},
+		{
+			"ImportPath": "github.com/yeonsh/go-ps",
+			"Rev": "99fd3fcb7c94bcff669b6535f98645f9ba01d09b"
 		},
 		{
 			"ImportPath": "golang.org/x/crypto/cast5",
