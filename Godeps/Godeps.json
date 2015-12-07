@@ -1,6 +1,6 @@
 {
-	"ImportPath": "github.com/AntonioMeireles/corectl",
-	"GoVersion": "go1.5.2",
+	"ImportPath": "github.com/TheNewNormal/corectl",
+	"GoVersion": "go1.5.1",
 	"Packages": [
 		"./..."
 	],
@@ -11,19 +11,9 @@
 			"Rev": "056c9bc7be7190eaa7715723883caffa5f8fa3e4"
 		},
 		{
-			"ImportPath": "github.com/TheNewNormal/corectl/image",
-			"Comment": "v0.0.10",
-			"Rev": "a117e5d7c645569cc52f58aad9fff7cf1cda89c6"
-		},
-		{
-			"ImportPath": "github.com/TheNewNormal/corectl/uuid2ip",
-			"Comment": "v0.0.10",
-			"Rev": "a117e5d7c645569cc52f58aad9fff7cf1cda89c6"
-		},
-		{
 			"ImportPath": "github.com/blang/semver",
-			"Comment": "v3.0.1",
-			"Rev": "31b736133b98f26d5e078ec9eb591666edfd091f"
+			"Comment": "v3.1.0",
+			"Rev": "aea32c919a18e5ef4537bbd283ff29594b1b0165"
 		},
 		{
 			"ImportPath": "github.com/cpuguy83/go-md2man/md2man",
@@ -79,8 +69,8 @@
 		},
 		{
 			"ImportPath": "github.com/russross/blackfriday",
-			"Comment": "v1.4-2-g300106c",
-			"Rev": "300106c228d52c8941d4b3de6054a6062a86dda3"
+			"Comment": "v1.4-8-ge3cbadc",
+			"Rev": "e3cbadc5c960894017d53ecf49dba4c361dacddf"
 		},
 		{
 			"ImportPath": "github.com/satori/go.uuid",
@@ -112,19 +102,19 @@
 		},
 		{
 			"ImportPath": "golang.org/x/crypto/cast5",
-			"Rev": "beef0f4390813b96e8e68fd78570396d0f4751fc"
+			"Rev": "7b85b097bf7527677d54d3220065e966a0e3b613"
 		},
 		{
 			"ImportPath": "golang.org/x/crypto/curve25519",
-			"Rev": "beef0f4390813b96e8e68fd78570396d0f4751fc"
+			"Rev": "7b85b097bf7527677d54d3220065e966a0e3b613"
 		},
 		{
 			"ImportPath": "golang.org/x/crypto/openpgp",
-			"Rev": "beef0f4390813b96e8e68fd78570396d0f4751fc"
+			"Rev": "7b85b097bf7527677d54d3220065e966a0e3b613"
 		},
 		{
 			"ImportPath": "golang.org/x/crypto/ssh",
-			"Rev": "beef0f4390813b96e8e68fd78570396d0f4751fc"
+			"Rev": "7b85b097bf7527677d54d3220065e966a0e3b613"
 		},
 		{
 			"ImportPath": "gopkg.in/fsnotify.v1",
@@ -133,7 +123,7 @@
 		},
 		{
 			"ImportPath": "gopkg.in/yaml.v2",
-			"Rev": "53feefa2559fb8dfa8d81baad31be332c97d6c77"
+			"Rev": "f7716cbe52baa25d2e9b0d0da546fcf909fc16b4"
 		}
 	]
 }
