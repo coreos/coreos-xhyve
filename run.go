@@ -175,7 +175,7 @@ func bootVM(vipre *viper.Viper) (err error) {
 
 	go func() {
 		select {
-		case <-time.After(15 * time.Second):
+		case <-time.After(45 * time.Second):
 			log.Println("Unable to grab VM's pid and IP after 15s (!)... " +
 				"Aborting")
 			return
