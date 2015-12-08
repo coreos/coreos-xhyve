@@ -40,8 +40,8 @@ var (
 				return fmt.Errorf("Incorrect usage: " +
 					"This command requires one argument (a file path)")
 			}
-			vipre.BindPFlags(cmd.Flags())
-			return SessionContext.allowedToRun()
+			engine.rawArgs.BindPFlags(cmd.Flags())
+			return engine.allowedToRun()
 		},
 		RunE:    loadCommand,
 		Example: `  corectl load profiles/demo.toml`,
@@ -100,13 +100,13 @@ func loadCommand(cmd *cobra.Command, args []string) (err error) {
 		ordered = append(ordered, name)
 	}
 	sort.Strings(ordered)
-	for _, name := range ordered {
+	for slot, name := range ordered {
 		fmt.Println("> booting", name)
-		if err = bootVM(vmDefs[name]); err != nil {
+		engine.VMs = append(engine.VMs, vmContext{})
+		if err = engine.boot(slot, vmDefs[name]); err != nil {
 			return
 		}
 	}
-
 	return
 }
 

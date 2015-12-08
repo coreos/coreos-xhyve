@@ -48,9 +48,9 @@ var (
 				return fmt.Errorf("Incorrect usage. " +
 					"This command doesn't accept any arguments.")
 			}
-			vipre.BindPFlags(cmd.Flags())
+			engine.rawArgs.BindPFlags(cmd.Flags())
 
-			return SessionContext.allowedToRun()
+			return engine.allowedToRun()
 		},
 		RunE: runCommand,
 	}
@@ -69,7 +69,8 @@ var (
 )
 
 func runCommand(cmd *cobra.Command, args []string) error {
-	return bootVM(vipre)
+	engine.VMs = append(engine.VMs, vmContext{})
+	return engine.boot(0, engine.rawArgs)
 }
 
 func xhyveCommand(cmd *cobra.Command, args []string) (err error) {
@@ -94,64 +95,111 @@ func xhyveCommand(cmd *cobra.Command, args []string) (err error) {
 		"-f", fmt.Sprintf("%s%v", a1, a2)), make(chan string))
 }
 
-func bootVM(vipre *viper.Viper) (err error) {
-	var (
-		rundir string
-		vm, c  = &VMInfo{}, &exec.Cmd{}
-	)
-
+func vmBootstrap(args *viper.Viper) (vm *VMInfo, err error) {
+	vm = &VMInfo{}
 	vm.publicIP = make(chan string)
-
-	vm.PreferLocalImages = vipre.GetBool("local")
-	if vm.Channel, vm.Version, err =
-		lookupImage(normalizeChannelName(vipre.GetString("channel")),
-			normalizeVersion(vipre.GetString("version")), false,
-			vm.PreferLocalImages); err != nil {
-		return
-	}
-	if err = vm.validateNameAndUUID(vipre.GetString("name"),
-		vipre.GetString("uuid")); err != nil {
-		return
-	}
-
-	vm.Detached = vipre.GetBool("detached")
-	vm.Cpus = vipre.GetInt("cpus")
-	vm.Extra = vipre.GetString("extra")
-	vm.SSHkey = vipre.GetString("sshkey")
+	vm.PreferLocalImages = args.GetBool("local")
+	vm.Detached = args.GetBool("detached")
+	vm.Cpus = args.GetInt("cpus")
+	vm.Extra = args.GetString("extra")
+	vm.SSHkey = args.GetString("sshkey")
 	vm.Root, vm.Pid = -1, -1
 
-	vm.validateRAM(vipre.GetInt("memory"))
+	vm.Name, vm.UUID = args.GetString("name"), args.GetString("uuid")
 
-	if err = vm.validateCDROM(vipre.GetString("cdrom")); err != nil {
+	if vm.UUID == "random" {
+		vm.UUID = uuid.NewV4().String()
+	} else if _, err = uuid.FromString(vm.UUID); err != nil {
+		log.Printf("%s not a valid UUID as it doesn't follow RFC 4122. %s\n",
+			vm.UUID, "    using a randomly generated one")
+		vm.UUID = uuid.NewV4().String()
+	}
+	for {
+		if vm.MacAddress, err = uuid2ip.GuestMACfromUUID(vm.UUID); err != nil {
+			original := args.GetString("uuid")
+			if original != "random" {
+				log.Printf("unable to guess the MAC Address from the provided "+
+					"UUID (%s). Using a randomly generated one one\n", original)
+			}
+			vm.UUID = uuid.NewV4().String()
+		} else {
+			break
+		}
+	}
+
+	if vm.Name == "" {
+		vm.Name = vm.UUID
+	}
+
+	if _, err = vmInfo(vm.Name); err == nil {
+		if vm.Name == vm.UUID {
+			return vm, fmt.Errorf("%s %s (%s)\n", "Aborting.",
+				"Another VM is running with same UUID.", vm.UUID)
+		}
+		return vm, fmt.Errorf("%s %s (%s)\n", "Aborting.",
+			"Another VM is running with same name.", vm.Name)
+	}
+
+	vm.Memory = args.GetInt("memory")
+	if vm.Memory < 1024 {
+		log.Printf("'%v' not a reasonable memory value. %s\n", vm.Memory,
+			"Using '1024', the default")
+		vm.Memory = 1024
+	} else if vm.Memory > 3072 {
+		log.Printf("'%v' not a reasonable memory value. %s %s\n", vm.Memory,
+			"as presently xhyve only supports VMs with up to 3GB of RAM.",
+			"setting it to '3072'")
+		vm.Memory = 3072
+	}
+
+	if vm.Channel, vm.Version, err =
+		lookupImage(normalizeChannelName(args.GetString("channel")),
+			normalizeVersion(args.GetString("version")),
+			false, vm.PreferLocalImages); err != nil {
 		return
 	}
 
-	if err = vm.validateVolumes([]string{vipre.GetString("root")},
+	if err = vm.validateCDROM(args.GetString("cdrom")); err != nil {
+		return
+	}
+
+	if err = vm.validateVolumes([]string{args.GetString("root")},
 		true); err != nil {
 		return
 	}
-	if err = vm.validateVolumes(pSlice(vipre.GetStringSlice("volume")),
+	if err = vm.validateVolumes(pSlice(args.GetStringSlice("volume")),
 		false); err != nil {
 		return
 	}
 
 	vm.Ethernet = append(vm.Ethernet, NetworkInterface{Type: Raw})
-	if err = vm.addTAPinterface(vipre.GetString("tap")); err != nil {
+	if err = vm.addTAPinterface(args.GetString("tap")); err != nil {
 		return
 	}
 
-	err = vm.validateCloudConfig(vipre.GetString("cloud_config"))
+	err = vm.validateCloudConfig(args.GetString("cloud_config"))
 	if err != nil {
 		return
 	}
 
 	vm.InternalSSHprivKey, vm.InternalSSHauthKey, err = sshKeyGen()
 	if err != nil {
-		return fmt.Errorf("%v (%v)",
+		return vm, fmt.Errorf("%v (%v)",
 			"Aborting: unable to generate internal SSH key pair (!)", err)
 	}
 
-	rundir = filepath.Join(SessionContext.runDir, vm.UUID)
+	return vm, err
+}
+
+func (running *sessionContext) boot(slt int, rawArgs *viper.Viper) (err error) {
+	var c = &exec.Cmd{}
+
+	if running.VMs[slt].vm, err = vmBootstrap(rawArgs); err != nil {
+		return
+	}
+	vm := running.VMs[slt].vm
+
+	rundir := filepath.Join(running.runDir, vm.UUID)
 	if err = os.RemoveAll(rundir); err != nil {
 		return
 	}
@@ -190,7 +238,7 @@ func bootVM(vipre *viper.Viper) (err error) {
 	}()
 
 	defer func() {
-		wg.Wait()
+		vm.wg.Wait()
 		if vm.Detached && err == nil {
 			log.Printf("started '%s' in background with IP %v and PID %v\n",
 				vm.Name, vm.PublicIP, c.Process.Pid)
@@ -258,7 +306,7 @@ func (f *etcExports) check() {
 	}
 	f.signature = fmt.Sprintf("/Users %s -alldirs -mapall=%s:%s",
 		"-network 192.168.64.0 -mask 255.255.255.0",
-		SessionContext.uid, SessionContext.gid)
+		engine.uid, engine.gid)
 	f.restart, f.shared = false, false
 	lines := strings.Split(string(f.buf), "\n")
 
@@ -298,10 +346,10 @@ func (f *etcExports) unshare() {
 }
 
 func (vm *VMInfo) storeConfig() (err error) {
-	rundir := filepath.Join(SessionContext.runDir, vm.UUID)
+	rundir := filepath.Join(engine.runDir, vm.UUID)
 	cfg, _ := json.MarshalIndent(vm, "", "    ")
 
-	if SessionContext.debug {
+	if engine.debug {
 		fmt.Println(string(cfg))
 	}
 
@@ -320,9 +368,9 @@ func (vm *VMInfo) assembleBootPayload() (cmd *exec.Cmd, err error) {
 			"uuid="+vm.UUID)
 		prefix  = "coreos_production_pxe"
 		vmlinuz = fmt.Sprintf("%s/%s/%s/%s.vmlinuz",
-			SessionContext.imageDir, vm.Channel, vm.Version, prefix)
+			engine.imageDir, vm.Channel, vm.Version, prefix)
 		initrd = fmt.Sprintf("%s/%s/%s/%s_image.cpio.gz",
-			SessionContext.imageDir, vm.Channel, vm.Version, prefix)
+			engine.imageDir, vm.Channel, vm.Version, prefix)
 		instr = []string{
 			"libxhyve_bug",
 			"-s", "0:0,hostbridge",
@@ -391,62 +439,6 @@ func (vm *VMInfo) assembleBootPayload() (cmd *exec.Cmd, err error) {
 		err
 }
 
-func (vm *VMInfo) atomic() (err error) {
-	if _, err = vmInfo(vm.Name); err == nil {
-		if vm.Name == vm.UUID {
-			return fmt.Errorf("%s %s (%s)\n", "Aborting.",
-				"Another VM is running with same UUID.", vm.UUID)
-		}
-		return fmt.Errorf("%s %s (%s)\n", "Aborting.",
-			"Another VM is running with same name.", vm.Name)
-	}
-	return nil
-}
-
-func (vm *VMInfo) validateNameAndUUID(name, xxid string) (err error) {
-	if xxid == "random" {
-		vm.UUID = uuid.NewV4().String()
-	} else if _, err = uuid.FromString(xxid); err != nil {
-		log.Printf("%s not a valid UUID as it doesn't follow RFC 4122. %s\n",
-			xxid, "    using a randomly generated one")
-		vm.UUID = uuid.NewV4().String()
-	} else {
-		vm.UUID = xxid
-	}
-	for {
-		if vm.MacAddress, err = uuid2ip.GuestMACfromUUID(vm.UUID); err != nil {
-			if xxid != "random" {
-				log.Printf("unable to guess the MAC Address from the provided "+
-					"UUID (%s). Using a randomly generated one one\n",	xxid)
-			}
-			vm.UUID = uuid.NewV4().String()
-		} else {
-			break
-		}
-	}
-
-	if name == "" {
-		vm.Name = vm.UUID
-	} else {
-		vm.Name = name
-	}
-	return vm.atomic()
-}
-
-func (vm *VMInfo) validateRAM(ram int) {
-	if ram < 1024 {
-		log.Printf("'%v' not a reasonable memory value. %s\n", ram,
-			"Using '1024', the default")
-		ram = 1024
-	} else if ram > 3072 {
-		log.Printf("'%v' not a reasonable memory value. %s %s\n", ram,
-			"as presently xhyve only supports VMs with up to 3GB of RAM.",
-			"setting it to '3072'")
-		ram = 3072
-	}
-	vm.Memory = ram
-}
-
 func (vm *VMInfo) validateCloudConfig(config string) (err error) {
 	if len(config) == 0 {
 		return
@@ -465,7 +457,7 @@ func (vm *VMInfo) validateCloudConfig(config string) (err error) {
 	if _, err = os.Stat(config); err != nil {
 		return
 	}
-	vm.CloudConfig = filepath.Join(SessionContext.pwd, config)
+	vm.CloudConfig = filepath.Join(engine.pwd, config)
 	vm.CClocation = Local
 	return
 }

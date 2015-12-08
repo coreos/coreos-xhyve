@@ -40,14 +40,14 @@ func defaultPreRunE(cmd *cobra.Command, args []string) (err error) {
 		return fmt.Errorf("Incorrect usage. " +
 			"This command doesn't accept any arguments.")
 	}
-	vipre.BindPFlags(cmd.Flags())
+	engine.rawArgs.BindPFlags(cmd.Flags())
 	return err
 }
 
 func rmCommand(cmd *cobra.Command, args []string) (err error) {
 	var (
-		channel = normalizeChannelName(vipre.GetString("channel"))
-		version = normalizeVersion(vipre.GetString("version"))
+		channel = normalizeChannelName(engine.rawArgs.GetString("channel"))
+		version = normalizeVersion(engine.rawArgs.GetString("version"))
 		ll      map[string]semver.Versions
 		l       semver.Versions
 	)
@@ -57,9 +57,9 @@ func rmCommand(cmd *cobra.Command, args []string) (err error) {
 	}
 	l = ll[channel]
 
-	if vipre.GetBool("old") {
+	if engine.rawArgs.GetBool("old") {
 		for _, v := range l[0 : l.Len()-1] {
-			if err = os.RemoveAll(filepath.Join(SessionContext.imageDir,
+			if err = os.RemoveAll(filepath.Join(engine.imageDir,
 				channel, "/", v.String())); err != nil {
 				return
 			}
@@ -77,7 +77,7 @@ func rmCommand(cmd *cobra.Command, args []string) (err error) {
 		}
 	}
 
-	target := filepath.Join(SessionContext.imageDir, channel, "/", version)
+	target := filepath.Join(engine.imageDir, channel, "/", version)
 	if _, err = os.Stat(target); err != nil {
 		log.Printf("%s/%s not found\n", channel, version)
 		return nil

@@ -47,7 +47,7 @@ func psCommand(cmd *cobra.Command, args []string) (err error) {
 	if running, err = allRunningInstances(); err != nil {
 		return
 	}
-	if vipre.GetBool("json") {
+	if engine.rawArgs.GetBool("json") {
 		if pp, err = json.MarshalIndent(running, "", "    "); err == nil {
 			fmt.Println(string(pp))
 		}
@@ -60,7 +60,7 @@ func psCommand(cmd *cobra.Command, args []string) (err error) {
 	log.Printf("found %v running VMs, summing %v vCPUs and %vMB in use.\n",
 		totalV, totalC, totalM)
 	for _, vm := range running {
-		vm.pp(vipre.GetBool("all"))
+		vm.pp(engine.rawArgs.GetBool("all"))
 	}
 	return
 }
@@ -68,7 +68,7 @@ func psCommand(cmd *cobra.Command, args []string) (err error) {
 func allRunningInstances() (alive []VMInfo, err error) {
 	var ls []os.FileInfo
 
-	if ls, err = ioutil.ReadDir(SessionContext.runDir); err != nil {
+	if ls, err = ioutil.ReadDir(engine.runDir); err != nil {
 		return
 	}
 	for _, d := range ls {
@@ -124,7 +124,7 @@ func (volumes *storageAssets) pp(root int) {
 func runningConfig(uuid string) (vm VMInfo, err error) {
 	var buf []byte
 	if buf, err =
-		ioutil.ReadFile(filepath.Join(SessionContext.runDir,
+		ioutil.ReadFile(filepath.Join(engine.runDir,
 			uuid, "/config")); err != nil {
 		return
 	}

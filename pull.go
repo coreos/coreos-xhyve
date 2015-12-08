@@ -43,8 +43,8 @@ var (
 )
 
 func pullCommand(cmd *cobra.Command, args []string) (err error) {
-	_, _, err = lookupImage(normalizeChannelName(vipre.GetString("channel")),
-		normalizeVersion(vipre.GetString("version")), vipre.GetBool("force"),
+	_, _, err = lookupImage(normalizeChannelName(engine.rawArgs.GetString("channel")),
+		normalizeVersion(engine.rawArgs.GetString("version")), engine.rawArgs.GetBool("force"),
 		false)
 	return
 }
@@ -140,7 +140,7 @@ func lookupImage(channel, version string,
 
 func localize(channel, version string) (a string, b string, err error) {
 	var files map[string]string
-	destination := fmt.Sprintf("%s/%s/%s", SessionContext.imageDir,
+	destination := fmt.Sprintf("%s/%s/%s", engine.imageDir,
 		channel, version)
 
 	if err = os.MkdirAll(destination, 0755); err != nil {
