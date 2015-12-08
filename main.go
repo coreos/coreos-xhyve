@@ -21,7 +21,6 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
 var (
@@ -41,6 +40,7 @@ var (
 		Use: "version", Short: "Shows corectl version information",
 		Run: versionCommand,
 	}
+	engine sessionContext
 )
 
 func main() {
@@ -49,10 +49,10 @@ func main() {
 	}
 }
 func init() {
-	// viper & cobra
-	vipre = viper.New()
-	vipre.SetEnvPrefix("COREOS")
-	vipre.AutomaticEnv()
+	// logger defaults
+	log.SetFlags(0)
+	log.SetOutput(os.Stderr)
+	log.SetPrefix("[corectl] ")
 
 	RootCmd.PersistentFlags().Bool("debug", false,
 		"adds extra verbosity, and options, for debugging purposes "+
@@ -61,15 +61,8 @@ func init() {
 	RootCmd.SetUsageTemplate(HelpTemplate)
 	RootCmd.AddCommand(versionCmd)
 
-	vipre.BindPFlags(RootCmd.PersistentFlags())
-
-	// logger defaults
-	log.SetFlags(0)
-	log.SetOutput(os.Stderr)
-	log.SetPrefix("[corectl] ")
-
 	// remaining defaults / startupChecks
-	SessionContext.init()
+	engine.init()
 }
 
 func versionCommand(cmd *cobra.Command, args []string) {

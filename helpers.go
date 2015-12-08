@@ -40,6 +40,7 @@ import (
 
 	"github.com/blang/semver"
 	"github.com/rakyll/pb"
+	"github.com/spf13/viper"
 	// until github.com/mitchellh/go-ps consumes it
 	"github.com/yeonsh/go-ps"
 	"golang.org/x/crypto/openpgp"
@@ -49,11 +50,11 @@ import (
 
 // (recursively) fix permissions on path
 func normalizeOnDiskPermissions(path string) (err error) {
-	if !SessionContext.hasPowers {
+	if !engine.hasPowers {
 		return
 	}
-	u, _ := strconv.Atoi(SessionContext.uid)
-	g, _ := strconv.Atoi(SessionContext.gid)
+	u, _ := strconv.Atoi(engine.uid)
+	g, _ := strconv.Atoi(engine.gid)
 
 	action := func(p string, _ os.FileInfo, _ error) error {
 		return os.Chown(p, u, g)
@@ -136,7 +137,7 @@ func downloadAndVerify(channel,
 			return
 		}
 		longIDdecodedInt = binary.BigEndian.Uint64(longIDdecoded)
-		if SessionContext.debug {
+		if engine.debug {
 			fmt.Printf("Trusted hex key id %s is decimal %d\n",
 				GPGLongID, longIDdecoded)
 		}
@@ -153,12 +154,12 @@ func downloadAndVerify(channel,
 			return l, fmt.Errorf("Signature check for DIGESTS failed.")
 		}
 		if check.PrimaryKey.KeyId == longIDdecodedInt {
-			if SessionContext.debug {
+			if engine.debug {
 				fmt.Printf("Trusted key id %d matches keyid %d\n",
 					longIDdecodedInt, longIDdecodedInt)
 			}
 		}
-		if SessionContext.debug {
+		if engine.debug {
 			fmt.Printf("DIGESTS signature OK. ")
 		}
 
@@ -233,11 +234,17 @@ func sshKeyGen() (a string, b string, err error) {
 		string(ssh.MarshalAuthorizedKey(public)), err
 }
 
-func (session *sessionInfo) init() (err error) {
+func (session *sessionContext) init() (err error) {
 	var (
 		caller *user.User
 		usr    string
 	)
+	// viper & cobra
+	session.rawArgs = viper.New()
+	session.rawArgs.SetEnvPrefix("COREOS")
+	session.rawArgs.AutomaticEnv()
+	session.rawArgs.BindPFlags(RootCmd.PersistentFlags())
+	session.debug = session.rawArgs.GetBool("debug")
 
 	if uid := os.Geteuid(); uid == 0 {
 		if usr = os.Getenv("SUDO_USER"); usr == "" {
@@ -254,7 +261,6 @@ func (session *sessionInfo) init() (err error) {
 			return
 		}
 	}
-	session.debug = vipre.GetBool("debug")
 
 	session.configDir = filepath.Join(caller.HomeDir, "/.coreos/")
 	session.imageDir = filepath.Join(session.configDir, "/images/")
@@ -280,7 +286,7 @@ func (session *sessionInfo) init() (err error) {
 	return normalizeOnDiskPermissions(session.configDir)
 }
 
-func (session *sessionInfo) allowedToRun() (err error) {
+func (session *sessionContext) allowedToRun() (err error) {
 	if !session.hasPowers {
 		return fmt.Errorf("not enough previleges to start or forcefully " +
 			"halt VMs. use 'sudo'")
@@ -346,20 +352,20 @@ func (vm *VMInfo) metadataService() (endpoint string, err error) {
 		return
 	}
 
-	wg.Add(1)
+	vm.wg.Add(1)
 
 	if vm.CloudConfig != "" && vm.CClocation == Local {
 		var txt []byte
 		if txt, err = ioutil.ReadFile(vm.CloudConfig); err != nil {
 			return
 		}
-		wg.Add(1)
+		vm.wg.Add(1)
 
 		mux.HandleFunc(root+"/cloud-config",
 			func(w http.ResponseWriter, r *http.Request) {
 				if isAllowed(rIP(r.RemoteAddr), w) {
 					w.Write(txt)
-					sentCC.Do(func() { wg.Done() })
+					sentCC.Do(func() { vm.wg.Done() })
 				}
 			})
 	}
@@ -368,7 +374,7 @@ func (vm *VMInfo) metadataService() (endpoint string, err error) {
 		func(w http.ResponseWriter, r *http.Request) {
 			if isAllowed(rIP(r.RemoteAddr), w) {
 				w.Write([]byte(vm.InternalSSHauthKey))
-				sentSSHk.Do(func() { wg.Done() })
+				sentSSHk.Do(func() { vm.wg.Done() })
 			}
 		})
 	mux.HandleFunc(root+"/hostname",

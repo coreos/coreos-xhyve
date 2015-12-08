@@ -31,8 +31,8 @@ var (
 		Aliases: []string{"stop", "halt"},
 		Short:   "Halts one or more running CoreOS instances",
 		PreRunE: func(cmd *cobra.Command, args []string) (err error) {
-			vipre.BindPFlags(cmd.Flags())
-			if len(args) < 1 && !vipre.GetBool("all") {
+			engine.rawArgs.BindPFlags(cmd.Flags())
+			if len(args) < 1 && !engine.rawArgs.GetBool("all") {
 				return fmt.Errorf("This command requires either at least " +
 					"one argument to work or --all.")
 			}
@@ -47,7 +47,7 @@ func killCommand(cmd *cobra.Command, args []string) (err error) {
 	if up, err = allRunningInstances(); err != nil {
 		return
 	}
-	if vipre.GetBool("all") {
+	if engine.rawArgs.GetBool("all") {
 		for _, vm := range up {
 			if err = vm.halt(); err != nil {
 				return err
@@ -75,7 +75,7 @@ func (vm VMInfo) halt() (err error) {
 			if e != nil {
 				// ssh messed up for some reason or target has no IP
 				log.Printf("couldn't ssh to %v (%v)...\n", vm.Name, e)
-				if canKill := SessionContext.allowedToRun(); canKill != nil {
+				if canKill := engine.allowedToRun(); canKill != nil {
 					return canKill
 				}
 				if p, ee := os.FindProcess(vm.Pid); ee == nil {
@@ -106,7 +106,7 @@ func (vm VMInfo) halt() (err error) {
 	case <-time.Tick(100 * time.Millisecond):
 		if _, ee := os.FindProcess(vm.Pid); ee == nil {
 			if e :=
-				os.RemoveAll(filepath.Join(SessionContext.runDir,
+				os.RemoveAll(filepath.Join(engine.runDir,
 					vm.UUID)); e != nil {
 				log.Println(e.Error())
 			}

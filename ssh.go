@@ -37,7 +37,7 @@ var (
 		Aliases: []string{"attach"},
 		Short:   "Attach to or run commands inside a running CoreOS instance",
 		PreRunE: func(cmd *cobra.Command, args []string) (err error) {
-			vipre.BindPFlags(cmd.Flags())
+			engine.rawArgs.BindPFlags(cmd.Flags())
 			if len(args) < 1 {
 				return fmt.Errorf("This command requires at least " +
 					"one argument to work ")
@@ -53,7 +53,7 @@ var (
 		Aliases: []string{"copy", "cp", "scp"},
 		Short:   "copy file to inside VM",
 		PreRunE: func(cmd *cobra.Command, args []string) (err error) {
-			vipre.BindPFlags(cmd.Flags())
+			engine.rawArgs.BindPFlags(cmd.Flags())
 			if len(args) < 2 {
 				return fmt.Errorf("This command requires at least " +
 					"two argument to work ")

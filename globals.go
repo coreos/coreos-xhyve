@@ -23,9 +23,12 @@ import (
 )
 
 type (
-	sessionInfo struct {
+	vmContext      struct{ vm *VMInfo }
+	sessionContext struct {
 		configDir, imageDir, runDir, pwd, uid, gid, username string
 		hasPowers, debug, json                               bool
+		rawArgs                                              *viper.Viper
+		VMs                                                  []vmContext
 	}
 	// VMInfo - per VM settings
 	VMInfo struct {
@@ -42,6 +45,7 @@ type (
 		PublicIP                               string
 		CreatedAt                              time.Time
 		publicIP                               chan string
+		wg                                     sync.WaitGroup
 	}
 	// NetworkInterface ...
 	NetworkInterface struct {
@@ -59,14 +63,7 @@ type (
 	}
 )
 
-var (
-	// CoreOS public release streams
-	DefaultChannels = []string{"alpha", "beta", "stable"}
-	vipre           *viper.Viper
-	// SessionContext ...
-	SessionContext sessionInfo
-	wg             sync.WaitGroup
-)
+var DefaultChannels = []string{"alpha", "beta", "stable"}
 
 const (
 	_ = iota

@@ -46,12 +46,12 @@ func manCommand(cmd *cobra.Command, args []string) {
 	header := &cobra.GenManHeader{
 		Title: "corectl", Source: " ",
 	}
-	RootCmd.GenManTree(header, SessionContext.pwd+"/documentation/man/")
+	RootCmd.GenManTree(header, engine.pwd+"/documentation/man/")
 }
 
 func mkdownCommand(cmd *cobra.Command, args []string) {
 	cobra.GenMarkdownTree(RootCmd,
-		SessionContext.pwd+"/documentation/markdown/")
+		engine.pwd+"/documentation/markdown/")
 }
 
 func init() {

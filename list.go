@@ -45,17 +45,17 @@ func lsCommand(cmd *cobra.Command, args []string) (err error) {
 		return
 	}
 
-	if vipre.GetBool("all") {
+	if engine.rawArgs.GetBool("all") {
 		channels = DefaultChannels
 	} else {
 		channels = append(channels,
-			normalizeChannelName(vipre.GetString("channel")))
+			normalizeChannelName(engine.rawArgs.GetString("channel")))
 	}
-	if vipre.GetBool("json") {
+	if engine.rawArgs.GetBool("json") {
 		var pp []byte
 		if len(channels) == 1 {
 			if pp, err = json.MarshalIndent(
-				local[normalizeChannelName(vipre.GetString("channel"))],
+				local[normalizeChannelName(engine.rawArgs.GetString("channel"))],
 				"", "    "); err != nil {
 				return
 			}
@@ -93,7 +93,7 @@ func localImages() (local map[string]semver.Versions, err error) {
 	)
 	local = make(map[string]semver.Versions, 0)
 	for _, channel = range DefaultChannels {
-		if files, err = ioutil.ReadDir(filepath.Join(SessionContext.imageDir,
+		if files, err = ioutil.ReadDir(filepath.Join(engine.imageDir,
 			channel)); err != nil {
 			return
 		}
