@@ -301,6 +301,13 @@ func (f *etcExports) check() {
 	f.exports = "/etc/exports"
 	var err error
 
+	// check if /etc/exports exists, and if not create an empty one
+	if _, err = os.Stat(f.exports); os.IsNotExist(err) {
+		if err = ioutil.WriteFile(f.exports, []byte(""), 0644); err != nil {
+			log.Fatalln(err)
+		}
+	}
+
 	if f.buf, err = ioutil.ReadFile(f.exports); err != nil {
 		log.Fatalln(err)
 	}
