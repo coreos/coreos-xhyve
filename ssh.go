@@ -199,8 +199,6 @@ func (c *sshClient) sCopy(source, destination, target string) (err error) {
 		return
 	}
 	defer ftp.Close()
-	log.Println("uploading '" + source + "' to '" +
-		target + ":" + destination + "'")
 
 	if src, err = os.Open(source); err != nil {
 		return
@@ -214,10 +212,15 @@ func (c *sshClient) sCopy(source, destination, target string) (err error) {
 			"not in target", source, filepath.Dir(destination))
 		return
 	}
+	if _, err = ftp.ReadDir(destination); err == nil {
+		destination = ftp.Join(destination, "/", filepath.Base(source))
+	}
 	if dest, err = ftp.Create(destination); err != nil {
 		return
 	}
 	defer dest.Close()
+	log.Println("uploading '" + source + "' to '" +
+		target + ":" + destination + "'")
 	bar = pb.New(int(srcS.Size())).SetUnits(pb.U_BYTES)
 	bar.Start()
 	defer bar.Finish()
