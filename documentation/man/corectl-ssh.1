@@ -1,0 +1,43 @@
+.TH "corectl" "1" "" " " ""  ""
+
+
+.SH NAME
+.PP
+corectl\-ssh \- Attach to or run commands inside a running CoreOS instance
+
+
+.SH SYNOPSIS
+.PP
+\fBcorectl ssh\fP [OPTIONS]
+
+
+.SH DESCRIPTION
+.PP
+Attach to or run commands inside a running CoreOS instance
+
+
+.SH OPTIONS INHERITED FROM PARENT COMMANDS
+.PP
+\fB\-\-debug\fP[=false]
+    adds extra verbosity, and options, for debugging purposes and/or power users
+
+
+.SH EXAMPLE
+.PP
+.RS
+
+.nf
+  corectl ssh VMid                 // logins into VMid
+  corectl ssh VMid "some commands" // runs 'some commands' inside VMid and exits
+
+.fi
+.RE
+
+
+.SH SEE ALSO
+.PP
+\fBcorectl(1)\fP
+
+
+.SH HISTORY
+.PP

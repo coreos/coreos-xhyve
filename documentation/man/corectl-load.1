@@ -1,0 +1,43 @@
+.TH "corectl" "1" "" " " ""  ""
+
+
+.SH NAME
+.PP
+corectl\-load \- Loads CoreOS instances defined in an instrumentation file.
+
+
+.SH SYNOPSIS
+.PP
+\fBcorectl load\fP [OPTIONS]
+
+
+.SH DESCRIPTION
+.PP
+Loads CoreOS instances defined in an instrumentation file (either in TOML, JSON or YAML format).
+VMs are always launched by alphabetical order relative to their names.
+
+
+.SH OPTIONS INHERITED FROM PARENT COMMANDS
+.PP
+\fB\-\-debug\fP[=false]
+    adds extra verbosity, and options, for debugging purposes and/or power users
+
+
+.SH EXAMPLE
+.PP
+.RS
+
+.nf
+  corectl load profiles/demo.toml
+
+.fi
+.RE
+
+
+.SH SEE ALSO
+.PP
+\fBcorectl(1)\fP
+
+
+.SH HISTORY
+.PP

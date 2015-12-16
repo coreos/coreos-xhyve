@@ -1,0 +1,81 @@
+#cloud-config
+
+hostname: containerLand
+coreos:
+  units:
+    - name: docker-tcp.socket
+      command: start
+      enable: true
+      content: |
+        [Unit]
+        Description=Docker Socket for the API
+
+        [Socket]
+        ListenStream=2375
+        BindIPv6Only=both
+        Service=docker.service
+
+        [Install]
+        WantedBy=sockets.target
+
+    - name: format-persistent-rkthdd.service
+      command: start
+      content: |
+        [Unit]
+        Description=Formats the persistent drive (if not formated yet).
+        [Service]
+        Type=oneshot
+        RemainAfterExit=yes
+        ExecStart=/bin/sh -c '/usr/sbin/blkid -pi /dev/disk/by-label/rkthdd | \
+          grep TYPE= || /usr/sbin/mkfs.ext4 /dev/disk/by-label/rkthdd'
+    - name: persistent-rkthdd.mount
+      command: start
+      content: |
+        [Unit]
+        Description=Mount persistent-rkthdd to /var/lib/docker
+        Requires=format-persistent-rkthdd.service docker.service rkt-metadata.socket
+        After=format-persistent-rkthdd.service
+        Before=docker.service rkt-metadata.socket
+        [Mount]
+        What=/dev/disk/by-label/rkthdd
+        Where=/persistent/rkthdd
+        Type=ext4
+    - name: persistent-rkthdd-checks.service
+      command: start
+      content: |
+        [Unit]
+        Description=prepare for /var/lib/{docker,rkt}
+        Requires=persistent-rkthdd.mount
+        After=persistent-rkthdd.mount
+        [Service]
+        Type=oneshot
+        RemainAfterExit=yes
+        ExecStart=/bin/sh -c '[[ -d /persistent/rkthdd/docker ]] || mkdir -p /persistent/rkthdd/docker'
+        ExecStart=/bin/sh -c '[[ -d /persistent/rkthdd/rkt ]] || mkdir -p /persistent/rkthdd/rkt'
+    - name: var-lib-docker.mount
+      command: start
+      content: |
+        [Unit]
+        Description=Binds /persistent/rkthdd/docker to /var/lib/docker
+        After=persistent-rkthdd-checks.service
+        Requires=persistent-rkthdd-checks.service docker.service
+        Before=docker.service
+        [Mount]
+        Before=docker.service
+        What=/persistent/rkthdd/docker
+        Where=/var/lib/docker
+        Type=none
+        Options=bind
+    - name: var-lib-rkt.mount
+      command: start
+      content: |
+        [Unit]
+        Description=Binds /persistent/rkthdd/rkt to /var/lib/rkt
+        Requires=persistent-rkthdd-checks.service rkt-metadata.socket
+        After=persistent-rkthdd-checks.service
+        Before=rkt-metadata.socket
+        [Mount]
+        What=/persistent/rkthdd/rkt
+        Where=/var/lib/rkt
+        Type=none
+        Options=bind

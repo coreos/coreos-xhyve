@@ -1,0 +1,11 @@
+cpus = 1
+memory = 1024
+[zyx]
+[containerLand]
+    cpus = 2
+    memory = "2048"
+    cloud_config = "cloud-init/docker-only-with-persistent-storage.txt"
+    volume = "var_lib_docker.img"
+[xpto]
+    memory = 2048
+    # tap = "/dev/tap0"
