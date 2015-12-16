@@ -23,6 +23,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"text/tabwriter"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -36,7 +37,78 @@ var (
 		PreRunE: defaultPreRunE,
 		RunE:    psCommand,
 	}
+	queryCmd = &cobra.Command{
+		Use:     "query",
+		Aliases: []string{"q"},
+		Short:   "Display information about the running CoreOS instances",
+		PreRunE: func(cmd *cobra.Command, args []string) (err error) {
+			engine.rawArgs.BindPFlags(cmd.Flags())
+			return nil
+		},
+		RunE: queryCommand,
+	}
 )
+
+func queryCommand(cmd *cobra.Command, args []string) (err error) {
+	var (
+		pp                []byte
+		running, selected []VMInfo
+		vm                VMInfo
+		tabP              = func(selected []VMInfo) {
+			w := new(tabwriter.Writer)
+			w.Init(os.Stdout, 5, 0, 1, ' ', 0)
+			fmt.Fprintf(w, "name\tchannel/version\tip\tcpu(s)\tram\tuuid\tpid"+
+				"\tuptime\tvols\n")
+			for _, vm = range selected {
+				fmt.Fprintf(w, "%v\t%v/%v\t%v\t%v\t%v\t%v\t%v\t%v\t%v\n",
+					vm.Name, vm.Channel, vm.Version, vm.PublicIP, vm.Cpus,
+					vm.Memory, vm.UUID, vm.Pid, time.Now().Sub(vm.CreatedAt),
+					len(vm.Storage.HardDrives))
+			}
+			w.Flush()
+		}
+	)
+	if running, err = allRunningInstances(); err != nil {
+		return
+	}
+	if len(args) == 0 {
+		if engine.rawArgs.GetBool("json") {
+			if pp, err = json.MarshalIndent(running, "", "    "); err == nil {
+				fmt.Println(string(pp))
+			}
+			return
+		}
+		if engine.rawArgs.GetBool("all") {
+			tabP(running)
+			return
+		}
+		for _, vm := range running {
+			fmt.Println(vm.Name)
+		}
+		return
+	}
+
+	for _, target := range args {
+		if vm, err = vmInfo(target); err != nil {
+			return
+		}
+		selected = append(selected, vm)
+	}
+	if engine.rawArgs.GetBool("json") {
+		if pp, err = json.MarshalIndent(selected, "", "    "); err == nil {
+			fmt.Println(string(pp))
+		}
+		return
+	}
+	if engine.rawArgs.GetBool("all") {
+		tabP(selected)
+		return
+	}
+	for _, vm := range selected {
+		fmt.Println(vm.Name)
+	}
+	return
+}
 
 func psCommand(cmd *cobra.Command, args []string) (err error) {
 	var (
@@ -141,4 +213,10 @@ func init() {
 	psCmd.Flags().BoolP("json", "j", false,
 		"outputs in JSON for easy 3rd party integration")
 	RootCmd.AddCommand(psCmd)
+
+	queryCmd.Flags().BoolP("json", "j", false,
+		"outputs in JSON for easy 3rd party integration")
+	queryCmd.Flags().BoolP("all", "a", false,
+		"display extended information about a running CoreOS instances")
+	RootCmd.AddCommand(queryCmd)
 }
