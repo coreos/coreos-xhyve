@@ -83,9 +83,9 @@ etcd 2.0.10
 
 The `coreos-xhyve-fetch` and `coreos-xhyve-run` behavior can be customized
 through the following environment variables:
-- **XHYVE**
+- **XHYVE**  
+  defaults to `xhyve`.  
   sets the absolute location (or name, in which case it will search in the $PATH) of the default *xhyve* binary to use.
-  defaults to `xhyve`.
 - **CHANNEL**  
   defaults to `alpha`.  
   available alternatives are `stable` and `beta`
@@ -97,22 +97,34 @@ through the following environment variables:
   defaults to `1024`.  
   value is understood as being in MB.
 - **UUID**
-  defaults to a random *uuid*.  
+  defaults to a random `uuid`.  
   set to a constant value in order to achieve the same IP address across VM reboots.
 - **SSHKEY**  
-  defaults to *none*
+  defaults to `none`
   if set it will add, on startup, the given SSH public key to the *core*
   user's authorized_keys file (it is usually in ~/.ssh/id_rsa.pub).  
   ```
   sudo coreos-xhyve-run SSHKEY="ssh-rsa AAAAB3...== x@y.z" ...
   ```
+- **ROOT_HDD**  
+  defaults to `none`.
+  if set to the absolute path of a pre-formated ext4 disk image, then the
+  provided image will be used for a writable root partition, allowing data to
+  persist across reboots of the VM.
+
+  **creating a disk image**:
+  ```
+  dd if=/dev/zero of=./xhyve.img bs=1M count=5000
+  /usr/local/opt/e2fsprogs/sbin/mkfs.ext4 -L ROOT xhyve.img
+  ```
+  *note: this requires you to install e2fsprogs (`brew install e2fsprogs`)*
 - **EXTRA_ARGS**  
-  defaults to *none*.  
+  defaults to `none`.  
   used to manually set additional VM parameters that do not fit elsewhere (tap devices, etc).
 - **CLOUD_CONFIG**  
-  defaults to `https://raw.githubusercontent.com/coreos/coreos-xhyve/master/cloud-init/docker-only.txt`, and has to be a valid, reachable, URL,
-  pointing to a valid *[cloud-config]
-  (https://coreos.com/docs/cluster-management/setup/cloudinit-cloud-config/)*
+  defaults to `https://raw.githubusercontent.com/coreos/coreos-xhyve/master/cloud-init/docker-only.txt`  
+  has to be a valid, reachable, URL, pointing to a valid
+  [cloud-config](https://coreos.com/docs/cluster-management/setup/cloudinit-cloud-config/)
   file.
 
   > **tip**:  
