@@ -114,7 +114,7 @@ through the following environment variables:
 
   **creating a disk image**:
   ```
-  dd if=/dev/zero of=./xhyve.img bs=1M count=5000
+  dd if=/dev/zero of=./xhyve.img bs=1024k count=5000
   /usr/local/opt/e2fsprogs/sbin/mkfs.ext4 -L ROOT xhyve.img
   ```
   *note: this requires you to install e2fsprogs (`brew install e2fsprogs`)*
